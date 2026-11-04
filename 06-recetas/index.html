@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ZeroWaste – Recetas</title>
+  <meta name="description" content="Recetas sugeridas para aprovechar tus alimentos y reducir desperdicio." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/layout.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-profile" style="cursor:pointer;" title="Clic para editar tu perfil" id="sidebarProfileBtn">
+        <div class="sp-avatar" id="sbAvatar">M</div>
+        <div class="sp-info">
+          <p class="sp-name" id="sbUserName">María Pérez</p>
+          <p class="sp-email" id="sbUserEmail">maria@correo.com</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../02-inicio/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg>Inicio
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg>Alimentos
+        </a>
+        <a href="../05-alertas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
+          </svg>Alertas
+          <span class="sb-badge" id="navBadgeAlertas">3</span>
+        </a>
+        <a href="../06-recetas/index.html" class="sb-nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>Recetas
+        </a>
+        <a href="../08-estadisticas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>Estadísticas
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main-area">
+      <header class="page-header">
+        <div class="ph-left">
+          <button class="btn-back-mobile" onclick="history.back()" aria-label="Volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <div>
+            <p class="ph-title">Recetas ZeroWaste</p>
+            <p class="ph-sub">Inspiración para cocinar con lo que ya tienes en casa</p>
+          </div>
+        </div>
+        <div class="ph-actions">
+          <div class="search-wrapper desktop-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="search-input" id="searchReceta" placeholder="Buscar por receta o ingrediente..." />
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <!-- Búsqueda móvil -->
+        <div class="search-wrapper mobile-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="search" class="search-input" id="searchRecetaMobile" placeholder="Buscar por receta o ingrediente..." />
+        </div>
+
+        <!-- Banner interactivo de Chef IA -->
+        <div class="ai-chef-banner" id="aiChefBanner">
+          <div class="acb-content">
+            <div class="acb-icon" aria-hidden="true">
+              <svg class="chef-ia-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="chefHatGrad" x1="8" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#FFFFFF"/>
+                    <stop offset="60%" stop-color="#E8F5E9"/>
+                    <stop offset="100%" stop-color="#C8E6C9"/>
+                  </linearGradient>
+                  <linearGradient id="goldStar" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FFE082"/>
+                    <stop offset="100%" stop-color="#FFA000"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="24" cy="24" r="22" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" stroke-dasharray="3 3"/>
+                <!-- Sombrero de Chef moderno -->
+                <path d="M16 26C13.2 26 11 23.8 11 21C11 18.5 12.8 16.5 15.2 16.1C15.1 15.4 15 14.7 15 14C15 9.6 18.6 6 23 6C25.4 6 27.6 7.1 29 8.8C30.2 7.1 32.2 6 34.5 6C38.1 6 41 8.9 41 12.5C41 13 40.9 13.5 40.8 14C42.7 15.2 44 17.2 44 19.5C44 23.1 41.1 26 37.5 26L16 26Z" fill="url(#chefHatGrad)"/>
+                <rect x="15" y="27" width="22" height="6" rx="3" fill="#FFFFFF"/>
+                <line x1="18" y1="30" x2="34" y2="30" stroke="#1E7A46" stroke-width="1.6" stroke-linecap="round"/>
+                <!-- Conexiones IA -->
+                <path d="M21 16L24 13L27 16" stroke="#1E7A46" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="24" cy="13" r="1.6" fill="#1E7A46"/>
+                <circle cx="21" cy="16" r="1.3" fill="#1E7A46"/>
+                <circle cx="27" cy="16" r="1.3" fill="#1E7A46"/>
+                <!-- Destellos mágicos / IA -->
+                <path d="M37 7L38 10L41 11L38 12L37 15L36 12L33 11L36 10L37 7Z" fill="url(#goldStar)"/>
+                <path d="M9 13L9.7 15.3L12 16L9.7 16.7L9 19L8.3 16.7L6 16L8.3 15.3L9 13Z" fill="url(#goldStar)"/>
+              </svg>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <h3 class="acb-title">Chef IA ZeroWaste</h3>
+                <span class="chef-ia-badge-pill">INTELIGENCIA ARTIFICIAL</span>
+              </div>
+              <p class="acb-sub">Crea recetas a la medida usando exclusivamente lo que tienes en tu despensa, priorizando lo que vence hoy sin alimentos caducados.</p>
+            </div>
+          </div>
+          <button type="button" class="btn-chef-ia" id="btnGenerarIA">
+            <span>✨</span> Crear receta con Chef IA
+          </button>
+        </div>
+
+        <!-- Pestañas de recetas inteligentes según despensa -->
+        <div class="recipe-tabs" id="recipeTabs">
+          <button class="recipe-tab active" data-tab="listas">🍳 Listas para cocinar (100% en despensa)</button>
+          <button class="recipe-tab" data-tab="urgentes">🚨 Salvan lo que vence</button>
+          <button class="recipe-tab" data-tab="ia">🤖 Chef IA</button>
+          <button class="recipe-tab" data-tab="comprar">🛒 Faltan ingredientes</button>
+          <button class="recipe-tab" data-tab="favoritas">❤️ Favoritas</button>
+        </div>
+
+        <!-- Grilla de recetas -->
+        <div class="recipe-grid" id="recipeList">
+          <!-- Generado dinámicamente por JS -->
+        </div>
+
+        <!-- Estado vacío -->
+        <div class="empty-state" id="emptyState" style="display:none; text-align:center; padding:60px 20px;">
+          <div style="font-size:42px; margin-bottom:12px;">🔍</div>
+          <p style="font-size:16px; font-weight:700; color:var(--text-main); margin-bottom:4px;">No se encontraron recetas</p>
+          <p style="font-size:13px; color:var(--text-sec);">Intenta con otro término de búsqueda o selecciona otra pestaña.</p>
+        </div>
+      </main>
+
+      <nav class="mobile-nav">
+        <a href="../02-inicio/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg><span>Inicio</span>
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg><span>Alimentos</span>
+        </a>
+        <a href="../05-alertas/index.html" class="mn-item">
+          <div style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <span class="mn-badge" id="mnBadgeAlertas"></span>
+          </div>
+          <span>Alertas</span>
+        </a>
+        <a href="../06-recetas/index.html" class="mn-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg><span>Recetas</span>
+        </a>
+        <a href="../08-estadisticas/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg><span>Estadísticas</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Modal para editar perfil rápido -->
+  <div class="zw-modal-overlay" id="profileModalOverlay">
+    <div class="zw-modal">
+      <div class="zw-modal-header">
+        <h3 class="zw-modal-title">Editar Perfil</h3>
+        <button class="zw-modal-close" id="btnCloseProfileModal" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="profileEditForm">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="form-group">
+            <label class="form-label" for="editUserName">Nombre</label>
+            <input type="text" class="form-input" id="editUserName" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editUserEmail">Correo electrónico</label>
+            <input type="email" class="form-input" id="editUserEmail">
+          </div>
+        </div>
+        <div class="zw-modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancelProfileModal" style="padding:9px 18px; border-radius:10px;">Cancelar</button>
+          <button type="submit" class="btn-primary-sm" style="padding:10px 22px; border-radius:10px;">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script src="../shared/store.js"></script>
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

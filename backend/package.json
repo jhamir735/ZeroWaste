@@ -1,0 +1,23 @@
+{
+  "name": "zerowaste-backend",
+  "version": "1.0.0",
+  "description": "Backend API REST con Node.js, Express y PostgreSQL para ZeroWaste",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "init-db": "node init_db.js",
+    "init-cache": "node init_cache_table.js",
+    "seed": "node seed_neon.js"
+  },
+  "keywords": ["zerowaste", "express", "postgresql", "api-rest"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  }
+}
+

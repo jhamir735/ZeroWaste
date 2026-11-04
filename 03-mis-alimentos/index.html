@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ZeroWaste – Mis Alimentos</title>
+  <meta name="description" content="Inventario inteligente de alimentos ZeroWaste con filtros y búsqueda." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/layout.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-profile" style="cursor:pointer;" title="Clic para editar tu perfil" id="sidebarProfileBtn">
+        <div class="sp-avatar" id="sbAvatar">M</div>
+        <div class="sp-info">
+          <p class="sp-name" id="sbUserName">María Pérez</p>
+          <p class="sp-email" id="sbUserEmail">maria@correo.com</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../02-inicio/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg>Inicio
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="sb-nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg>Alimentos
+        </a>
+        <a href="../05-alertas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
+          </svg>Alertas
+          <span class="sb-badge" id="navBadgeAlertas">3</span>
+        </a>
+        <a href="../06-recetas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>Recetas
+        </a>
+        <a href="../08-estadisticas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>Estadísticas
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main-area">
+      <header class="page-header">
+        <div class="ph-left">
+          <button class="btn-back-mobile" onclick="history.back()" aria-label="Volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <div>
+            <p class="ph-title">Mis alimentos</p>
+            <p class="ph-sub">Gestiona tu despensa y evita el desperdicio</p>
+          </div>
+        </div>
+        <div class="ph-actions">
+          <div class="search-wrapper desktop-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="search-input" id="searchInput" placeholder="Buscar alimento..."
+              aria-label="Buscar alimento" />
+          </div>
+          <a href="../04-registrar-alimento/index.html" class="btn-primary-sm" id="btnAdd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Agregar
+          </a>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <!-- Búsqueda móvil -->
+        <div class="search-wrapper mobile-search">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="search" class="search-input" id="searchInputMobile" placeholder="Buscar alimento..."
+            aria-label="Buscar alimento" />
+        </div>
+
+        <!-- Filtros de categoría -->
+        <div class="filter-tabs" role="tablist" id="filterTabs">
+          <button class="filter-tab active" role="tab" data-filter="todos" id="tabTodos">Todos</button>
+          <button class="filter-tab" role="tab" data-filter="frutas" id="tabFrutas">Frutas y verduras</button>
+          <button class="filter-tab" role="tab" data-filter="lacteos" id="tabLacteos">Lácteos</button>
+          <button class="filter-tab" role="tab" data-filter="cereales" id="tabCereales">Cereales</button>
+          <button class="filter-tab" role="tab" data-filter="carnes" id="tabCarnes">Carnes</button>
+          <button class="filter-tab" role="tab" data-filter="bebidas" id="tabBebidas">Bebidas</button>
+        </div>
+
+        <!-- Barra de resumen métrico interactivo -->
+        <div class="inventory-kpi-row" id="summaryStrip">
+          <div class="kpi-chip kpi-urgent" id="kpiUrgentCard">
+            <span class="kpi-icon">🚨</span>
+            <div class="kpi-texts">
+              <span class="kpi-val" id="ssUrgent">0</span>
+              <span class="kpi-lbl">Vencen hoy</span>
+            </div>
+          </div>
+          <div class="kpi-chip kpi-warning" id="kpiWarnCard">
+            <span class="kpi-icon">⚠️</span>
+            <div class="kpi-texts">
+              <span class="kpi-val" id="ssWarn">0</span>
+              <span class="kpi-lbl">Próximos (1-3 d)</span>
+            </div>
+          </div>
+          <div class="kpi-chip kpi-total" id="kpiTotalCard">
+            <span class="kpi-icon">📦</span>
+            <div class="kpi-texts">
+              <span class="kpi-val" id="ssTotal">0</span>
+              <span class="kpi-lbl">Total despensa (Neon)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de alimentos -->
+        <ul class="food-list" id="foodList" aria-label="Lista de alimentos"></ul>
+
+        <!-- Estado vacío -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="empty-icon">🥗</div>
+          <p class="empty-title">No hay alimentos en esta sección</p>
+          <p class="empty-sub">Agrega alimentos a tu despensa o prueba con otro término de búsqueda.</p>
+          <a href="../04-registrar-alimento/index.html" class="btn-primary-sm" style="margin-top:12px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar alimento
+          </a>
+        </div>
+      </main>
+
+      <nav class="mobile-nav">
+        <a href="../02-inicio/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg><span>Inicio</span>
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="mn-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg><span>Alimentos</span>
+        </a>
+        <a href="../05-alertas/index.html" class="mn-item">
+          <div style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <span class="mn-badge" id="mnBadgeAlertas"></span>
+          </div>
+          <span>Alertas</span>
+        </a>
+        <a href="../06-recetas/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg><span>Recetas</span>
+        </a>
+        <a href="../08-estadisticas/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg><span>Estadísticas</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Botón flotante móvil -->
+  <a href="../04-registrar-alimento/index.html" class="fab" id="fabAdd" aria-label="Agregar alimento">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  </a>
+
+  <!-- Modal para editar perfil rápido -->
+  <div class="zw-modal-overlay" id="profileModalOverlay">
+    <div class="zw-modal">
+      <div class="zw-modal-header">
+        <h3 class="zw-modal-title">Editar Perfil</h3>
+        <button class="zw-modal-close" id="btnCloseProfileModal" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="profileEditForm">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="form-group">
+            <label class="form-label" for="editUserName">Nombre</label>
+            <input type="text" class="form-input" id="editUserName" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editUserEmail">Correo electrónico</label>
+            <input type="email" class="form-input" id="editUserEmail">
+          </div>
+        </div>
+        <div class="zw-modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancelProfileModal" style="padding:9px 18px; border-radius:10px;">Cancelar</button>
+          <button type="submit" class="btn-primary-sm" style="padding:10px 22px; border-radius:10px;">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notificación toast -->
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script src="../shared/store.js"></script>
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

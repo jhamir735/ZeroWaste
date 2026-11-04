@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>ZeroWaste – Registrar Alimento</title>
+  <meta name="description" content="Registra un nuevo alimento en tu inventario ZeroWaste." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../shared/layout.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-profile" style="cursor:pointer;" title="Clic para editar tu perfil" id="sidebarProfileBtn">
+        <div class="sp-avatar" id="sbAvatar">M</div>
+        <div class="sp-info">
+          <p class="sp-name" id="sbUserName">María Pérez</p>
+          <p class="sp-email" id="sbUserEmail">maria@correo.com</p>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="../02-inicio/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg>Inicio
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="sb-nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg>Alimentos
+        </a>
+        <a href="../05-alertas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
+          </svg>Alertas
+          <span class="sb-badge" id="navBadgeAlertas">3</span>
+        </a>
+        <a href="../06-recetas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg>Recetas
+        </a>
+        <a href="../08-estadisticas/index.html" class="sb-nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>Estadísticas
+        </a>
+      </nav>
+    </aside>
+
+    <div class="main-area">
+      <header class="page-header">
+        <div class="ph-left">
+          <a href="../03-mis-alimentos/index.html" class="back-btn" id="backBtn" aria-label="Volver">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20">
+              <polyline points="15,18 9,12 15,6" />
+            </svg>
+          </a>
+          <div>
+            <p class="ph-title">Registrar alimento</p>
+            <p class="ph-sub">Completa los datos del alimento para recibir alertas</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-content">
+        <div class="form-wrapper">
+          <form class="food-form" id="foodForm" novalidate>
+            <!-- Foto opcional -->
+            <div class="photo-zone" id="photoZone" tabindex="0" role="button" aria-label="Toca para agregar foto">
+              <div class="photo-preview" id="photoPreview">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg" width="52" height="52">
+                  <circle cx="30" cy="30" r="28" fill="#E6F4EA" />
+                  <circle cx="30" cy="30" r="14" fill="#2F9E5B" opacity="0.6" />
+                </svg>
+              </div>
+              <p class="photo-hint" id="photoHint">📸 Toca para agregar una foto (opcional)</p>
+              <input type="file" id="photoInput" accept="image/*" style="display:none;" aria-hidden="true" />
+            </div>
+
+            <div class="form-cols">
+              <!-- Columna izquierda -->
+              <div class="form-col">
+                <div class="form-group">
+                  <label class="form-label" for="nombreInput">Nombre del alimento *</label>
+                  <input type="text" class="form-input" id="nombreInput" placeholder="Ej. Palta Hass, Tomate, Leche..." required autocomplete="off" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="categoriaSelect">Categoría *</label>
+                  <div class="select-wrap">
+                    <select class="form-input" id="categoriaSelect" required>
+                      <option value="">Selecciona una categoría</option>
+                      <option value="frutas">🥑 Frutas y verduras</option>
+                      <option value="lacteos">🥛 Lácteos</option>
+                      <option value="carnes">🥩 Carnes y pescados</option>
+                      <option value="cereales">🌾 Cereales y legumbres</option>
+                      <option value="bebidas">🧃 Bebidas</option>
+                      <option value="otros">🍱 Otros</option>
+                    </select>
+                    <svg class="sel-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="6,9 12,15 18,9" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Ubicación</label>
+                  <div class="location-chips" id="locationChips">
+                    <button type="button" class="chip chip-active" data-loc="refrigeradora" id="chipRefri">❄️ Refrigeradora</button>
+                    <button type="button" class="chip" data-loc="congelador" id="chipCongel">🧊 Congelador</button>
+                    <button type="button" class="chip" data-loc="despensa" id="chipDespa">🚪 Despensa</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Columna derecha -->
+              <div class="form-col">
+                <div class="form-group">
+                  <label class="form-label" for="cantidadInput">Cantidad</label>
+                  <div class="qty-row">
+                    <button type="button" class="qty-btn" id="qtyMinus" aria-label="Reducir cantidad">−</button>
+                    <input type="number" class="qty-input" id="cantidadInput" value="1" min="1" max="999" />
+                    <button type="button" class="qty-btn" id="qtyPlus" aria-label="Aumentar cantidad">+</button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="fechaInput">Fecha de vencimiento *</label>
+                  <input type="date" class="form-input" id="fechaInput" required />
+                  <div class="quick-dates" id="quickDates">
+                    <button type="button" class="qd-btn" data-days="0" id="qdHoy">Hoy</button>
+                    <button type="button" class="qd-btn" data-days="3" id="qd3d">+3 días</button>
+                    <button type="button" class="qd-btn active" data-days="7" id="qd7d">+1 semana</button>
+                    <button type="button" class="qd-btn" data-days="30" id="qd30d">+1 mes</button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="notasInput">Notas (opcional)</label>
+                  <textarea class="form-input form-textarea" id="notasInput" placeholder="Ej. Comprado en mercado local, abrir pronto..." rows="3"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="reminder-note">
+              <svg viewBox="0 0 10 10" width="10" height="10">
+                <circle cx="5" cy="5" r="5" fill="#2F9E5B" />
+              </svg>
+              Te avisaremos 3 días antes de su fecha de vencimiento
+            </div>
+
+            <div class="form-actions">
+              <a href="../03-mis-alimentos/index.html" class="btn-cancel">Cancelar</a>
+              <button type="submit" class="btn-guardar" id="btnGuardar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" style="margin-right:6px;"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Guardar alimento
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+
+      <nav class="mobile-nav">
+        <a href="../02-inicio/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9,22 9,12 15,12 15,22" />
+          </svg><span>Inicio</span>
+        </a>
+        <a href="../03-mis-alimentos/index.html" class="mn-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="12" r="1.5" fill="currentColor" />
+            <circle cx="3" cy="18" r="1.5" fill="currentColor" />
+          </svg><span>Alimentos</span>
+        </a>
+        <a href="../05-alertas/index.html" class="mn-item">
+          <div style="position:relative;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            <span class="mn-badge" id="mnBadgeAlertas"></span>
+          </div>
+          <span>Alertas</span>
+        </a>
+        <a href="../06-recetas/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14,2 14,8 20,8" />
+          </svg><span>Recetas</span>
+        </a>
+        <a href="../08-estadisticas/index.html" class="mn-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg><span>Estadísticas</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Modal para editar perfil rápido -->
+  <div class="zw-modal-overlay" id="profileModalOverlay">
+    <div class="zw-modal">
+      <div class="zw-modal-header">
+        <h3 class="zw-modal-title">Editar Perfil</h3>
+        <button class="zw-modal-close" id="btnCloseProfileModal" aria-label="Cerrar">&times;</button>
+      </div>
+      <form id="profileEditForm">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="form-group">
+            <label class="form-label" for="editUserName">Nombre</label>
+            <input type="text" class="form-input" id="editUserName" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="editUserEmail">Correo electrónico</label>
+            <input type="email" class="form-input" id="editUserEmail">
+          </div>
+        </div>
+        <div class="zw-modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancelProfileModal" style="padding:9px 18px; border-radius:10px;">Cancelar</button>
+          <button type="submit" class="btn-primary-sm" style="padding:10px 22px; border-radius:10px;">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script src="../shared/store.js"></script>
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

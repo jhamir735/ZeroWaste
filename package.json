@@ -1,0 +1,18 @@
+{
+  "name": "zerowaste-app",
+  "version": "1.0.0",
+  "description": "ZeroWaste - Aplicación Web Anti-Desperdicio de Alimentos",
+  "scripts": {
+    "start": "node backend/server.js",
+    "server": "node backend/server.js",
+    "seed": "node backend/seed_neon.js"
+  },
+  "keywords": [
+    "zerowaste",
+    "postgresql",
+    "neon"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+

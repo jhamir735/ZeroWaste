@@ -1,0 +1,101 @@
+/* =============================================
+   ZeroWaste - Alertas | style.css
+   ============================================= */
+
+/* Secciones de alerta */
+.alert-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.dot {
+  width: 10px; height: 10px;
+  border-radius: 50%; flex-shrink: 0;
+}
+.dot-urgent  { background: var(--urgent-text); animation: pulse 1.5s ease-in-out infinite; }
+.dot-warning { background: var(--warn-text); }
+.dot-safe    { background: var(--accent); }
+
+.section-title { font-size: 15px; font-weight: 700; color: var(--text-main); }
+
+/* Grid para alertas en escritorio */
+.alert-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.alert-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  animation: slideIn 0.3s ease both;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.alert-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(31,42,36,0.12); }
+
+.urgent-card {
+  background: var(--urgent-bg);
+  border-left: 4px solid var(--urgent-text);
+}
+
+.alert-info { flex: 1; min-width: 0; }
+.alert-food-name { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.alert-meta { font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-consumido {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--white);
+  border: 1.5px solid rgba(31, 42, 36, 0.12);
+  color: var(--text-sec);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.btn-consumido:hover {
+  background: var(--success-bg);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.empty-alert {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-sec);
+  font-size: 14.5px;
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+@keyframes pulse {
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.4);opacity:0.7}
+}
+
+@media (max-width: 768px) {
+  .alert-list { grid-template-columns: 1fr; }
+}
+

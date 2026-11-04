@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZeroWaste – Bienvenida</title>
+  <meta name="description" content="ZeroWaste: Aprovecha lo que tienes. Desperdicia menos. Regístrate o inicia sesión." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ======= Diseño de ESCRITORIO ======= -->
+  <div class="desktop-layout">
+    <!-- Panel izquierdo: branding -->
+    <section class="left-panel" aria-label="Branding ZeroWaste">
+      <div class="lp-content">
+        <img src="../shared/logo.jpg" alt="ZeroWaste Logo" class="main-logo-img">
+        <ul class="feature-list" aria-label="Características">
+          <li><span class="feat-icon">🥑</span> Controla tus alimentos antes de que venzan</li>
+          <li><span class="feat-icon">🍳</span> Recetas personalizadas con lo que tienes</li>
+          <li><span class="feat-icon">💰</span> Calcula tu ahorro real cada mes</li>
+          <li><span class="feat-icon">🌱</span> Reduce tu huella ambiental</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Panel derecho: formulario y bienvenida -->
+    <section class="right-panel" aria-label="Acceso a la cuenta">
+      <div class="rp-card">
+        <!-- Logo móvil (visible solo en teléfonos) -->
+        <div class="mobile-logo" aria-hidden="true">
+          <img src="../shared/logo.jpg" alt="ZeroWaste Logo" class="mobile-logo-img">
+        </div>
+
+        <h2 class="rp-title">Empieza ahora</h2>
+        <p class="rp-sub">Únete a miles de personas que ya reducen su desperdicio de alimentos y ahorran dinero.</p>
+
+        <div class="btn-group">
+          <button type="button" class="btn btn-primary" id="btnCrearCuenta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Crear cuenta
+          </button>
+          <a href="../02-inicio/index.html" class="btn btn-secondary" id="btnYaTengo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10,17 15,12 10,7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Entrar como María
+          </a>
+        </div>
+
+        <p class="legal">Al continuar aceptas nuestros <a href="#" class="link-legal">Términos de uso</a> y <a href="#" class="link-legal">Política de privacidad</a>.</p>
+
+        <!-- Barra de estadísticas -->
+        <div class="stats-bar">
+          <div class="stat-item">
+            <span class="si-num">12k+</span>
+            <span class="si-label">Usuarios</span>
+          </div>
+          <div class="si-sep"></div>
+          <div class="stat-item">
+            <span class="si-num">98k</span>
+            <span class="si-label">Alimentos salvados</span>
+          </div>
+          <div class="si-sep"></div>
+          <div class="stat-item">
+            <span class="si-num">S/ 2M</span>
+            <span class="si-label">Ahorro total</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal para Crear Cuenta / Ingresar Nombre -->
+  <div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="modalRegistroLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="border-radius:18px; border:none; box-shadow:0 16px 48px rgba(0,0,0,0.25);">
+        <div class="modal-header" style="border-bottom:1px solid rgba(0,0,0,0.06); padding:20px 24px;">
+          <h5 class="modal-title" id="modalRegistroLabel" style="font-weight:700; color:#1F2A24; font-size:18px;">¡Bienvenido a ZeroWaste!</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <form id="formRegistro">
+          <div class="modal-body" style="padding:24px;">
+            <p style="font-size:13.5px; color:#55665B; margin-bottom:18px;">Personaliza tu experiencia ingresando tu nombre para gestionar tu despensa inteligente:</p>
+            <div class="mb-3">
+              <label for="nombreUsuarioInput" class="form-label" style="font-weight:600; font-size:13px; color:#1F2A24;">Tu nombre o apodo</label>
+              <input type="text" class="form-control" id="nombreUsuarioInput" placeholder="Ej. María Pérez" required style="border-radius:10px; padding:10px 14px; font-size:14px; border:1.5px solid rgba(31,42,36,0.15);" value="María Pérez">
+            </div>
+            <div class="mb-2">
+              <label for="correoUsuarioInput" class="form-label" style="font-weight:600; font-size:13px; color:#1F2A24;">Correo electrónico (opcional)</label>
+              <input type="email" class="form-control" id="correoUsuarioInput" placeholder="Ej. maria@correo.com" style="border-radius:10px; padding:10px 14px; font-size:14px; border:1.5px solid rgba(31,42,36,0.15);" value="maria@correo.com">
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top:1px solid rgba(0,0,0,0.06); padding:16px 24px; gap:10px;">
+            <button type="button" class="btn" data-bs-dismiss="modal" style="background:#f4f6f5; color:#55665B; border-radius:10px; font-weight:600; font-size:13.5px; padding:10px 18px;">Cancelar</button>
+            <button type="submit" class="btn" style="background:#1E7A46; color:#fff; border-radius:10px; font-weight:600; font-size:13.5px; padding:10px 22px;">Comenzar ahora</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/store.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+﻿/* =============================================
+   ZeroWaste - Registrar Alimento | style.css
+   ============================================= */
+
+.back-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-main);
+  transition: background 0.15s;
+  text-decoration: none;
+}
+.back-btn:hover { background: var(--success-bg); }
+
+/* Contenedor del formulario centra el formulario en escritorio */
+.form-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* Zona de foto */
+.photo-zone {
+  border: 2px dashed rgba(30,122,70,0.3);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.photo-zone:hover, .photo-zone:focus {
+  border-color: var(--primary);
+  background: var(--success-bg);
+  outline: none;
+}
+
+.photo-preview {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--success-bg);
+}
+.photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+.photo-hint { font-size: 13px; color: var(--text-sec); }
+
+/* Diseño de formulario de dos columnas en escritorio */
+.form-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-col { display: flex; flex-direction: column; gap: 18px; }
+
+/* Grupos de formulario */
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.form-input {
+  padding: 12px 14px;
+  background: var(--white);
+  border: 1.5px solid rgba(31,42,36,0.14);
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.form-input::placeholder { color: var(--text-sec); }
+.form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(30,122,70,0.1); }
+
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* Select */
+.select-wrap { position: relative; }
+.form-input[id="categoriaSelect"] { appearance: none; padding-right: 38px; cursor: pointer; }
+.sel-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 18px; stroke: var(--text-sec); pointer-events: none; }
+
+/* Cantidad */
+.qty-row {
+  display: flex;
+  align-items: center;
+  background: var(--white);
+  border: 1.5px solid rgba(31,42,36,0.14);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qty-btn {
+  width: 44px; height: 48px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+  border: none; cursor: pointer; background: none;
+}
+.qty-btn:hover { background: var(--success-bg); }
+
+.qty-input {
+  flex: 1; text-align: center;
+  border: none; outline: none;
+  font-family: var(--font); font-size: 17px; font-weight: 700;
+  color: var(--text-main);
+  background: transparent;
+}
+.qty-input::-webkit-inner-spin-button { appearance: none; }
+
+/* Fechas rápidas */
+.quick-dates { display: flex; gap: 7px; margin-top: 6px; flex-wrap: wrap; }
+
+.qd-btn {
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--primary);
+  background: var(--success-bg);
+  border: 1px solid rgba(30,122,70,0.2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.qd-btn:hover, .qd-btn.active { background: var(--primary); color: #fff; }
+
+/* Chips de ubicación */
+.location-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.chip {
+  padding: 9px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-sec);
+  background: var(--white);
+  border: 1.5px solid rgba(31,42,36,0.14);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.chip:hover { border-color: var(--primary); color: var(--primary); }
+.chip.chip-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* Nota recordatoria */
+.reminder-note {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text-sec);
+  margin-bottom: 20px;
+}
+
+/* Acciones */
+.form-actions {
+  display: flex; gap: 12px; justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 13px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sec);
+  background: var(--bg);
+  border: 1.5px solid rgba(31,42,36,0.14);
+  text-decoration: none;
+  display: flex; align-items: center;
+  transition: background 0.15s;
+}
+.btn-cancel:hover { background: rgba(31,42,36,0.06); }
+
+.btn-guardar {
+  padding: 13px 32px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(30,122,70,0.35);
+  transition: background 0.15s, transform 0.15s;
+}
+.btn-guardar:hover { background: var(--accent); transform: translateY(-1px); }
+.btn-guardar:active { transform: scale(0.97); }
+
+/* Estado de error */
+.form-input.error { border-color: var(--urgent-text); box-shadow: 0 0 0 3px rgba(198,40,40,0.1); }
+
+/* ---- Móvil ---- */
+@media (max-width: 768px) {
+  .form-cols { grid-template-columns: 1fr; }
+  .form-actions { flex-direction: column; }
+  .btn-cancel, .btn-guardar { width: 100%; justify-content: center; }
+}
+
