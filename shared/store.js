@@ -45,7 +45,18 @@ const ZWStore = (function () {
     COOKED:      'zw_cooked',
     RECIPES:     'zw_recipes',
     STATS:       'zw_stats',
+    TOKEN:       'zw_auth_token',
   };
+
+  const AUTH_PAGE = /\/01-bienvenida\//.test(window.location.pathname);
+
+  function loginUrl () {
+    return new URL('../01-bienvenida/index.html', window.location.href).href;
+  }
+
+  function redirectToLogin () {
+    if (!AUTH_PAGE) window.location.replace(loginUrl());
+  }
 
   /* ---- Catálogo base de recetas (fallback local) ---- */
   const DEFAULT_RECIPES = [
@@ -290,6 +301,126 @@ const ZWStore = (function () {
     }
   }
 
+  /* ---- Sesión, usuario y almacenamiento por usuario ---- */
+  function getToken () {
+    try { return localStorage.getItem(KEYS.TOKEN) || ''; } catch { return ''; }
+  }
+
+  function setToken (token) {
+    try {
+      if (token) localStorage.setItem(KEYS.TOKEN, token);
+      else localStorage.removeItem(KEYS.TOKEN);
+    } catch (e) {
+      console.warn('No se pudo guardar la sesión:', e);
+    }
+  }
+
+  function normalizeUser (raw) {
+    if (!raw) return null;
+    return {
+      id: raw.id || raw.usuario_id || null,
+      name: raw.name || raw.nombre || '',
+      email: raw.email || '',
+      username: raw.username || raw.usuario || '',
+      fecha_registro: raw.fecha_registro || null
+    };
+  }
+
+  function currentUserId () {
+    const user = load(KEYS.USER, null);
+    return user && user.id ? String(user.id) : 'anon';
+  }
+
+  function scopedKey (key) {
+    return key + '_u' + currentUserId();
+  }
+
+  function loadData (key, fallback) {
+    return load(scopedKey(key), fallback);
+  }
+
+  function saveData (key, value) {
+    save(scopedKey(key), value);
+  }
+
+  function setSession (token, usuario) {
+    const user = normalizeUser(usuario);
+    setToken(token);
+    if (user) save(KEYS.USER, user);
+  }
+
+  function clearSession () {
+    setToken('');
+    try { localStorage.removeItem(KEYS.USER); } catch (e) {}
+  }
+
+  function isAuthenticated () {
+    return !!getToken() && !!load(KEYS.USER, null);
+  }
+
+  function parseErrorMessage (json, fallback) {
+    return (json && (json.message || json.error)) || fallback;
+  }
+
+  async function authRequest (path, payload) {
+    let res;
+    try {
+      res = await fetch(API_BASE + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload || {})
+      });
+    } catch (e) {
+      throw new Error('No se pudo conectar con el servidor. Verifica que el backend esté activo.');
+    }
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || !json.success) {
+      throw new Error(parseErrorMessage(json, 'No se pudo completar la operación.'));
+    }
+    return json;
+  }
+
+  async function login (identifier, password) {
+    const json = await authRequest('/auth/login', { identifier: identifier, password: password });
+    setSession(json.token, json.data);
+    return json.data;
+  }
+
+  async function register (payload) {
+    const json = await authRequest('/auth/registro', payload);
+    setSession(json.token, json.data);
+    return json.data;
+  }
+
+  function logout () {
+    clearSession();
+    redirectToLogin();
+  }
+
+  function apiFetch (path, options) {
+    const opts = Object.assign({}, options || {});
+    opts.headers = Object.assign({}, opts.headers || {});
+
+    const token = getToken();
+    if (token) opts.headers.Authorization = 'Bearer ' + token;
+
+    if (opts.body && typeof opts.body === 'string' && !opts.headers['Content-Type']) {
+      opts.headers['Content-Type'] = 'application/json';
+    }
+
+    const url = /^https?:\/\//i.test(path) ? path : API_BASE + path;
+
+    return fetch(url, opts).then(function (res) {
+      if (res.status === 401 || res.status === 403) {
+        clearSession();
+        redirectToLogin();
+        throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
+      }
+      return res;
+    });
+  }
+
   function today () {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -338,50 +469,41 @@ const ZWStore = (function () {
 
   /* ============ INICIALIZACIÓN Y CACHÉ ============ */
   function initSampleData () {
-    const existing = load(KEYS.FOODS, null);
-    if (!existing || existing.length === 0) {
-      save(KEYS.FOODS, [
-        { id: 1, name: 'Palta',   category: 'frutas',   qty: 2, location: 'refrigeradora', expDate: addDays(0),  initial: 'P', color: '#A71619' },
-        { id: 2, name: 'Tomate',  category: 'frutas',   qty: 6, location: 'refrigeradora', expDate: addDays(1),  initial: 'T', color: '#F5A524' },
-        { id: 3, name: 'Lechuga', category: 'frutas',   qty: 1, location: 'refrigeradora', expDate: addDays(2),  initial: 'L', color: '#1E7A46' },
-        { id: 4, name: 'Manzana', category: 'frutas',   qty: 5, location: 'despensa',      expDate: addDays(5),  initial: 'M', color: '#2F9E5B' },
-        { id: 5, name: 'Limón',   category: 'frutas',   qty: 3, location: 'despensa',      expDate: addDays(8),  initial: 'L', color: '#55665B' },
-        { id: 6, name: 'Yogur',   category: 'lacteos',  qty: 2, location: 'refrigeradora', expDate: addDays(3),  initial: 'Y', color: '#6B48A3' },
-        { id: 7, name: 'Arroz',   category: 'cereales', qty: 1, location: 'despensa',      expDate: addDays(90), initial: 'A', color: '#D3B38D' },
-      ]);
-    }
-    if (!localStorage.getItem(KEYS.USER)) {
-      save(KEYS.USER, { id: 1, name: 'María Pérez', email: 'maria@correo.com' });
-    }
-    if (!localStorage.getItem(KEYS.FAVORITES)) {
-      save(KEYS.FAVORITES, [1]);
-    }
-    if (!localStorage.getItem(KEYS.COOKED)) {
-      save(KEYS.COOKED, []);
-    }
-    if (!localStorage.getItem(KEYS.RECIPES)) {
-      save(KEYS.RECIPES, DEFAULT_RECIPES);
-    }
+    // Cada usuario empieza con su propia despensa vacía.
+    // El catálogo de recetas se usa como respaldo local, no como inventario.
+    if (!getToken()) return;
+    if (!loadData(KEYS.FOODS, null)) saveData(KEYS.FOODS, []);
+    if (!loadData(KEYS.FAVORITES, null)) saveData(KEYS.FAVORITES, []);
+    if (!loadData(KEYS.COOKED, null)) saveData(KEYS.COOKED, []);
   }
 
   /* ============ SINCRONIZACIÓN CON BACKEND (NEON POSTGRESQL) ============ */
   async function syncFromBackend () {
+    if (!getToken()) return;
+
     try {
       console.log('🔄 Sincronizando con Backend PostgreSQL (Neon)...');
 
-      // 0. Si hay alimentos pendientes creados offline (ID temporal de timestamp), sincronizarlos primero a Neon
-      const localFoods = load(KEYS.FOODS, []);
+      // 0. Refrescar primero el usuario para que la caché use su espacio aislado
+      const resUser = await apiFetch('/usuario');
+      if (resUser.ok) {
+        const jsonUser = await resUser.json();
+        if (jsonUser.success && jsonUser.data) {
+          save(KEYS.USER, normalizeUser(jsonUser.data));
+        }
+      }
+
+      // 1. Si hay alimentos pendientes creados offline (ID temporal de timestamp), sincronizarlos primero
+      const localFoods = loadData(KEYS.FOODS, []);
       if (Array.isArray(localFoods)) {
         const pendingOffline = localFoods.filter(function (f) {
           return typeof f.id === 'number' && f.id > 1000000000;
         });
         for (const item of pendingOffline) {
           try {
-            await fetch(`${API_BASE}/alimentos`, {
+            await apiFetch('/alimentos', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                usuario_id: 1,
                 nombre: item.name,
                 categoria: item.category,
                 cantidad: item.qty || 1,
@@ -398,8 +520,8 @@ const ZWStore = (function () {
         }
       }
 
-      // 1. Alimentos desde PostgreSQL
-      const resFoods = await fetch(`${API_BASE}/alimentos`);
+      // 1. Alimentos del usuario autenticado
+      const resFoods = await apiFetch('/alimentos');
       if (resFoods.ok) {
         const json = await resFoods.json();
         if (json.success && Array.isArray(json.data)) {
@@ -415,22 +537,13 @@ const ZWStore = (function () {
             color: f.color || avatarColor(f.nombre),
             initial: f.inicial || (f.nombre ? f.nombre.charAt(0).toUpperCase() : 'A')
           }));
-          save(KEYS.FOODS, mapped);
+          saveData(KEYS.FOODS, mapped);
           console.log(`✅ ${mapped.length} alimentos sincronizados desde Neon.`);
         }
       }
 
-      // 2. Usuario
-      const resUser = await fetch(`${API_BASE}/usuario?id=1`);
-      if (resUser.ok) {
-        const jsonUser = await resUser.json();
-        if (jsonUser.success && jsonUser.data) {
-          save(KEYS.USER, jsonUser.data);
-        }
-      }
-
       // 3. Recetas y Favoritos
-      const resRecetas = await fetch(`${API_BASE}/recetas?usuario_id=1`);
+      const resRecetas = await apiFetch('/recetas');
       if (resRecetas.ok) {
         const jsonR = await resRecetas.json();
         if (jsonR.success && Array.isArray(jsonR.data)) {
@@ -459,20 +572,21 @@ const ZWStore = (function () {
               ingredientes: r.ingredientes || [],
               steps: r.pasos || [],
               pasos: r.pasos || [],
-              es_favorita: r.es_favorita
+              es_favorita: r.es_favorita,
+              receta_id_externo: r.receta_id_externo
             };
           });
-          save(KEYS.RECIPES, recipesMapped);
-          save(KEYS.FAVORITES, favs);
+          saveData(KEYS.RECIPES, recipesMapped);
+          saveData(KEYS.FAVORITES, favs);
         }
       }
 
       // 4. Estadísticas
-      const resStats = await fetch(`${API_BASE}/estadisticas?usuario_id=1`);
+      const resStats = await apiFetch('/estadisticas');
       if (resStats.ok) {
         const jsonS = await resStats.json();
         if (jsonS.success && jsonS.data) {
-          save(KEYS.STATS, jsonS.data);
+          saveData(KEYS.STATS, jsonS.data);
         }
       }
 
@@ -489,11 +603,11 @@ const ZWStore = (function () {
 
   /* ============ ALIMENTOS (CRUD CON BACKEND) ============ */
   function getFoods () {
-    return load(KEYS.FOODS, []);
+    return loadData(KEYS.FOODS, []);
   }
 
   function saveFoods (foods) {
-    save(KEYS.FOODS, foods);
+    saveData(KEYS.FOODS, foods);
   }
 
   function getFoodsWithStatus () {
@@ -522,11 +636,9 @@ const ZWStore = (function () {
 
     // 1. Guardar en PostgreSQL (Neon) primero
     try {
-      const res = await fetch(`${API_BASE}/alimentos`, {
+      const res = await apiFetch('/alimentos', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          usuario_id: 1,
           nombre: food.name,
           categoria: food.category,
           cantidad: food.qty,
@@ -569,22 +681,23 @@ const ZWStore = (function () {
     };
   }
 
-  async function removeFood (id, foodName) {
+  async function removeFood (id, foodName, motivo) {
     const numericId = Number(id);
     const foods = getFoods();
-    const itemToDelete = foods.find(function (f) { return Number(f.id) !== numericId; });
+    const itemToDelete = foods.find(function (f) { return Number(f.id) === numericId; });
     const finalName = foodName || (itemToDelete ? itemToDelete.name : '');
     const nameParam = encodeURIComponent(finalName || '');
+    const motivoParam = encodeURIComponent(motivo || 'consumido');
 
     let deletedInBackend = false;
     let backendMessage = '';
 
     // Sincronizar borrado en PostgreSQL (Neon)
     try {
-      const url = `${API_BASE}/alimentos/${numericId}${nameParam ? '?nombre=' + nameParam : ''}`;
-      const res = await fetch(url, {
+      const url = `/alimentos/${numericId}?motivo=${motivoParam}${nameParam ? '&nombre=' + nameParam : ''}`;
+      const res = await apiFetch(url, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+        body: JSON.stringify({ motivo: motivo || 'consumido', nombre: finalName || '' })
       });
       if (res.ok) {
         const json = await res.json();
@@ -611,7 +724,7 @@ const ZWStore = (function () {
     };
   }
 
-  async function updateFoodQty (id, newQty) {
+  async function updateFoodQty (id, newQty, motivo) {
     const numericId = Number(id);
     const foods = getFoods();
     const item = foods.find(function (f) { return Number(f.id) === numericId; });
@@ -619,9 +732,9 @@ const ZWStore = (function () {
 
     const targetQty = Math.max(0, parseInt(newQty, 10));
 
-    // Si la cantidad llega a 0, se elimina/consume completamente
+    // Si la cantidad llega a 0, se registra en el historial y se elimina
     if (targetQty <= 0) {
-      return await removeFood(id, item.name);
+      return await removeFood(id, item.name, motivo || 'consumido');
     }
 
     item.qty = targetQty;
@@ -631,10 +744,9 @@ const ZWStore = (function () {
 
     let updatedInBackend = false;
     try {
-      const res = await fetch(`${API_BASE}/alimentos/${numericId}`, {
+      const res = await apiFetch(`/alimentos/${numericId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cantidad: targetQty })
+        body: JSON.stringify({ cantidad: targetQty, motivo: motivo || 'consumido' })
       });
       if (res.ok) {
         updatedInBackend = true;
@@ -654,21 +766,29 @@ const ZWStore = (function () {
 
   /* ============ USUARIO (CRUD CON BACKEND) ============ */
   function getUser () {
-    return load(KEYS.USER, { id: 1, name: 'María Pérez', email: 'maria@correo.com' });
+    const raw = load(KEYS.USER, null);
+    if (!raw) return { id: null, name: '', email: '', username: '' };
+    return normalizeUser(raw);
   }
 
   async function saveUser (u) {
     const current = getUser();
     const updated = Object.assign({}, current, u);
-    save(KEYS.USER, updated);
+    save(KEYS.USER, normalizeUser(updated));
     syncUI();
 
     try {
-      await fetch(`${API_BASE}/usuario`, {
+      const res = await apiFetch('/usuario', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: 1, nombre: updated.name, email: updated.email })
+        body: JSON.stringify({ nombre: updated.name, email: updated.email })
       });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          save(KEYS.USER, normalizeUser(json.data));
+          syncUI();
+        }
+      }
     } catch (e) {
       console.warn('Actualización de usuario offline:', e.message);
     }
@@ -678,7 +798,7 @@ const ZWStore = (function () {
 
   /* ============ RECETAS Y FAVORITOS (CON BACKEND E INTELIGENCIA ARTIFICIAL) ============ */
   function getRecipes () {
-    return load(KEYS.RECIPES, DEFAULT_RECIPES);
+    return loadData(KEYS.RECIPES, DEFAULT_RECIPES);
   }
 
   function getRecipe (id) {
@@ -691,7 +811,7 @@ const ZWStore = (function () {
 
   async function getRecipeDetail (id) {
     try {
-      const res = await fetch(`${API_BASE}/recetas/${id}?usuario_id=1`);
+      const res = await apiFetch(`/recetas/${encodeURIComponent(id)}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -706,12 +826,12 @@ const ZWStore = (function () {
 
   async function fetchRecommendations (filtro = 'todas', busqueda = '') {
     try {
-      const url = `${API_BASE}/recetas/recomendaciones?usuario_id=1&filtro=${encodeURIComponent(filtro)}&q=${encodeURIComponent(busqueda || '')}`;
-      const res = await fetch(url);
+      const url = `/recetas/recomendaciones?filtro=${encodeURIComponent(filtro)}&q=${encodeURIComponent(busqueda || '')}`;
+      const res = await apiFetch(url);
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
-          save(KEYS.RECIPES, json.data);
+          saveData(KEYS.RECIPES, json.data);
           return json;
         }
       }
@@ -723,17 +843,16 @@ const ZWStore = (function () {
 
   async function generateAiRecipe () {
     try {
-      const res = await fetch(`${API_BASE}/recetas/generar-ia`, {
+      const res = await apiFetch('/recetas/generar-ia', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario_id: 1 })
+        body: JSON.stringify({})
       });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
           const current = getRecipes();
           current.unshift(json.data);
-          save(KEYS.RECIPES, current);
+          saveData(KEYS.RECIPES, current);
           return json.data;
         }
       } else {
@@ -747,7 +866,7 @@ const ZWStore = (function () {
   }
 
   function getFavorites () {
-    return load(KEYS.FAVORITES, []);
+    return loadData(KEYS.FAVORITES, []);
   }
 
   function isFavorite (id) {
@@ -768,14 +887,13 @@ const ZWStore = (function () {
       favs.push(strId);
       state = true;
     }
-    save(KEYS.FAVORITES, favs);
+    saveData(KEYS.FAVORITES, favs);
 
     // Enviar a PostgreSQL en segundo plano
     try {
-      await fetch(`${API_BASE}/recetas/${encodeURIComponent(id)}/favorito`, {
+      await apiFetch(`/recetas/${encodeURIComponent(id)}/favorito`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario_id: 1 })
+        body: JSON.stringify({})
       });
     } catch (e) {
       console.warn('Toggle favorito offline:', e.message);
@@ -786,7 +904,7 @@ const ZWStore = (function () {
 
   /* ============ COCINADOS (CON BACKEND) ============ */
   function getCooked () {
-    return load(KEYS.COOKED, []);
+    return loadData(KEYS.COOKED, []);
   }
 
   function isCooked (id) {
@@ -800,15 +918,14 @@ const ZWStore = (function () {
     const cooked = getCooked().map(String);
     if (!cooked.includes(strId)) {
       cooked.push(strId);
-      save(KEYS.COOKED, cooked);
+      saveData(KEYS.COOKED, cooked);
     }
 
     // Enviar al backend (realiza la transacción en PostgreSQL descontando ingredientes)
     try {
-      await fetch(`${API_BASE}/recetas/${encodeURIComponent(strId)}/cocinar`, {
+      await apiFetch(`/recetas/${encodeURIComponent(strId)}/cocinar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario_id: 1, descontar_alimentos: true })
+        body: JSON.stringify({ descontar_alimentos: true })
       });
     } catch (e) {
       console.warn('Registro de cocinado offline:', e.message);
@@ -817,7 +934,7 @@ const ZWStore = (function () {
 
   /* ============ ESTADÍSTICAS ============ */
   function getStats () {
-    const backendStats = load(KEYS.STATS, null);
+    const backendStats = loadData(KEYS.STATS, null);
     if (backendStats) {
       return {
         total: backendStats.total_en_inventario,
@@ -858,14 +975,106 @@ const ZWStore = (function () {
     };
   }
 
+  /* ============ HISTORIAL Y REPORTES ============ */
+  async function getHistorial (options) {
+    const opts = options || {};
+    const params = new URLSearchParams();
+    if (opts.limite) params.set('limite', opts.limite);
+    if (opts.offset) params.set('offset', opts.offset);
+    if (opts.offsetConsumos !== undefined) params.set('offset_consumos', opts.offsetConsumos);
+    if (opts.offsetCocinados !== undefined) params.set('offset_cocinados', opts.offsetCocinados);
+    if (opts.motivo) params.set('motivo', opts.motivo);
+
+    const res = await apiFetch('/historial' + (params.toString() ? '?' + params.toString() : ''));
+    const json = await res.json().catch(function () { return {}; });
+    if (!res.ok || !json.success) {
+      throw new Error(json.message || 'No se pudo consultar el historial');
+    }
+    return json.data;
+  }
+
+  async function downloadReport (tipo, formato) {
+    const tipoSeguro = tipo || 'estadisticas';
+    const formatoSeguro = formato === 'excel' ? 'excel' : 'pdf';
+
+    const res = await apiFetch(`/reportes/${tipoSeguro}?formato=${formatoSeguro}`);
+    if (!res.ok) {
+      let message = 'No se pudo generar el reporte';
+      try {
+        const json = await res.json();
+        message = json.message || message;
+      } catch (e) {}
+      throw new Error(message);
+    }
+
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    let filename = `ZeroWaste_${tipoSeguro}.${formatoSeguro === 'excel' ? 'xls' : 'pdf'}`;
+    const match = /filename=\"?([^\";]+)\"?/i.exec(disposition);
+    if (match && match[1]) filename = match[1];
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    return filename;
+  }
+
   /* ============ SINCRONIZADOR GLOBAL DE UI ============ */
+  function ensureLogoutUI () {
+    const logoutIcon =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+        '<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>' +
+        '<polyline points="16 17 21 12 16 7"/>' +
+        '<line x1="21" y1="12" x2="9" y2="12"/>' +
+      '</svg>';
+
+    document.querySelectorAll('.sidebar').forEach(function (sidebar) {
+      if (sidebar.querySelector('.zw-logout-btn')) return;
+      let footer = sidebar.querySelector('.sidebar-footer');
+      if (!footer) {
+        footer = document.createElement('div');
+        footer.className = 'sidebar-footer';
+        sidebar.appendChild(footer);
+      }
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'sb-nav-item zw-logout-btn';
+      btn.innerHTML = logoutIcon + '<span>Cerrar sesión</span>';
+      btn.addEventListener('click', logout);
+      footer.appendChild(btn);
+    });
+
+    function addHeaderLogout (container) {
+      if (!container || container.querySelector('.zw-logout-header')) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'zw-logout-header';
+      btn.title = 'Cerrar sesión';
+      btn.setAttribute('aria-label', 'Cerrar sesión');
+      btn.innerHTML = logoutIcon;
+      btn.addEventListener('click', logout);
+      container.appendChild(btn);
+    }
+
+    document.querySelectorAll('.page-header .ph-actions').forEach(addHeaderLogout);
+    document.querySelectorAll('.page-header').forEach(function (header) {
+      if (!header.querySelector('.ph-actions')) addHeaderLogout(header);
+    });
+  }
+
   function syncUI () {
     const user = getUser();
-    const initial = (user.name || 'M').charAt(0).toUpperCase();
+    const displayName = user.name || 'Usuario';
+    const initial = displayName.charAt(0).toUpperCase();
 
     // Actualizar nombres y avatares en barra lateral
     document.querySelectorAll('.sp-name, #sbUserName').forEach(function (el) {
-      el.textContent = user.name;
+      el.textContent = displayName;
     });
     document.querySelectorAll('.sp-email, #sbUserEmail').forEach(function (el) {
       if (user.email) el.textContent = user.email;
@@ -892,12 +1101,23 @@ const ZWStore = (function () {
         el.style.display = 'none';
       }
     });
+
+    ensureLogoutUI();
   }
 
   /* ============ API PÚBLICA ============ */
   return {
     init:               initSampleData,
     syncFromBackend:    syncFromBackend,
+    apiFetch:           apiFetch,
+    /* sesión */
+    login:              login,
+    register:           register,
+    logout:             logout,
+    setSession:         setSession,
+    clearSession:       clearSession,
+    getToken:           getToken,
+    isAuthenticated:    isAuthenticated,
     /* alimentos */
     getFoods:           getFoods,
     saveFoods:          saveFoods,
@@ -923,8 +1143,10 @@ const ZWStore = (function () {
     getCooked:          getCooked,
     isCooked:           isCooked,
     markCooked:         markCooked,
-    /* estadísticas */
+    /* estadísticas e historial */
     getStats:           getStats,
+    getHistorial:       getHistorial,
+    downloadReport:     downloadReport,
     /* utilidades */
     daysUntil:          daysUntil,
     badgeInfo:          badgeInfo,
@@ -936,10 +1158,21 @@ const ZWStore = (function () {
 
 })();
 
-// Inicializar caché local e intentar sincronización en segundo plano con Neon
+// Inicializar caché local y proteger las páginas privadas
 ZWStore.init();
 
+(function protegerPagina () {
+  const esBienvenida = /\/01-bienvenida\//.test(window.location.pathname);
+  if (!ZWStore.getToken() && !esBienvenida) {
+    const destino = new URL('../01-bienvenida/index.html', window.location.href).href;
+    window.location.replace(destino);
+  }
+})();
+
 document.addEventListener('DOMContentLoaded', function () {
+  const esBienvenida = /\/01-bienvenida\//.test(window.location.pathname);
+  if (esBienvenida) return;
+  if (!ZWStore.getToken()) return;
   ZWStore.syncUI();
   ZWStore.syncFromBackend();
 });

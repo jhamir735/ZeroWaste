@@ -146,9 +146,9 @@
 
     if (isMinus && newQty <= 0) {
       lastDeletedItem = food;
-      await ZWStore.updateFoodQty(id, 0);
+      await ZWStore.updateFoodQty(id, 0, 'consumido');
       renderFoods();
-      showToast('🎉 ¡Terminaste todo el ' + name + '! Descontado de Neon.', true);
+      showToast('🎉 ¡Terminaste todo el ' + name + '! Registrado en tu historial.', true);
       return;
     }
 
@@ -156,7 +156,7 @@
       await ZWStore.updateFoodQty(id, newQty);
       renderFoods();
       if (isMinus) {
-        showToast('🥄 Usaste 1 de ' + name + '. Quedan ' + newQty + ' en tu despensa.', false);
+        showToast('🥄 Usaste 1 de ' + name + '. Quedan ' + newQty + ' y quedó registrado en tu historial.', false);
       } else {
         showToast('➕ Añadiste 1 unidad de ' + name + ' (Total: ' + newQty + ').', false);
       }
@@ -185,10 +185,10 @@
     }
 
     try {
-      const res = await ZWStore.removeFood(id, itemName);
+      const res = await ZWStore.removeFood(id, itemName, 'eliminado');
       renderFoods();
       if (res && res.deletedInBackend) {
-        showToast('🗑 Alimento eliminado de la base de datos (Neon)', true);
+        showToast('🗑 Alimento eliminado y guardado en tu historial', true);
       } else {
         showToast('🗑 Alimento eliminado de tu inventario', true);
       }
@@ -263,13 +263,40 @@
   if (editForm) {
     editForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      const n = editName?.value.trim() || 'María Pérez';
-      const em = editEmail?.value.trim() || 'maria@correo.com';
+      const n = editName?.value.trim() || 'Usuario';
+      const em = editEmail?.value.trim() || '';
       ZWStore.saveUser({ name: n, email: em });
       refreshUser();
       closeProfileModal();
     });
   }
+
+  /* ---- Exportar inventario ---- */
+  async function exportarInventario (formato, button) {
+    const original = button ? button.innerHTML : '';
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = '⏳...';
+    }
+    try {
+      const filename = await ZWStore.downloadReport('inventario', formato);
+      showToast('📄 Inventario descargado: ' + filename, false);
+    } catch (err) {
+      showToast('⚠️ ' + err.message, false);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = original;
+      }
+    }
+  }
+
+  document.getElementById('btnExportInventarioPdf')?.addEventListener('click', function () {
+    exportarInventario('pdf', this);
+  });
+  document.getElementById('btnExportInventarioExcel')?.addEventListener('click', function () {
+    exportarInventario('excel', this);
+  });
 
   /* ---- Inicializar ---- */
   window.addEventListener('zw:synced', renderFoods);

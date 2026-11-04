@@ -370,8 +370,8 @@
   if (editForm) {
     editForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      const n = editName?.value.trim() || 'María Pérez';
-      const em = editEmail?.value.trim() || 'maria@correo.com';
+      const n = editName?.value.trim() || 'Usuario';
+      const em = editEmail?.value.trim() || '';
       ZWStore.saveUser({ name: n, email: em });
       refreshUser();
       closeProfileModal();

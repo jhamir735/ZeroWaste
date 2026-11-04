@@ -7,6 +7,9 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/recetas.controller');
+const { requireAuth } = require('../middleware/auth.middleware');
+
+router.use(requireAuth);
 
 // Rutas especializadas (deben ir antes de las parametrizadas :id)
 router.get('/recomendaciones', controller.getRecomendaciones);

@@ -5,6 +5,10 @@
 'use strict';
 
 const db = require('./config/db');
+const AuthService = require('./services/auth.service');
+const { runMigration } = require('./migrate_auth');
+
+const DEMO_PASSWORD = 'zerowaste123';
 
 async function seed () {
   console.log('🔄 Conectando a Neon para poblar datos completos...');
@@ -14,25 +18,28 @@ async function seed () {
     process.exit(1);
   }
 
+  await runMigration({ silent: true });
+
   const client = await db.pool.connect();
 
   try {
     await client.query('BEGIN');
 
     console.log('🧹 Limpiando tablas previas...');
-    await client.query('TRUNCATE TABLE recetas_cocinadas, favoritos, alimentos, recetas, usuarios RESTART IDENTITY CASCADE;');
+    await client.query('TRUNCATE TABLE alimentos_consumidos, recetas_cocinadas, favoritos, alimentos, recetas, usuarios RESTART IDENTITY CASCADE;');
 
     // 1. Insertar Usuarios
-    console.log('👤 Insertando usuarios...');
+    console.log('👤 Insertando usuarios con acceso y contraseña...');
+    const demoHash = AuthService.hashPassword(DEMO_PASSWORD);
     const userQuery = `
-      INSERT INTO usuarios (nombre, email) VALUES
-      ('María Pérez', 'maria@correo.com'),
-      ('Carlos Mendoza', 'carlos.m@correo.com'),
-      ('Ana Lucía Torres', 'ana.torres@correo.com')
+      INSERT INTO usuarios (nombre, email, username, password_hash) VALUES
+      ('María Pérez', 'maria@correo.com', 'maria', $1),
+      ('Carlos Mendoza', 'carlos.m@correo.com', 'carlos', $1),
+      ('Ana Lucía Torres', 'ana.torres@correo.com', 'ana', $1)
       RETURNING id, nombre;
     `;
-    const userRes = await client.query(userQuery);
-    console.log(`   ${userRes.rows.length} usuarios creados.`);
+    const userRes = await client.query(userQuery, [demoHash]);
+    console.log(`   ${userRes.rows.length} usuarios creados (contraseña demo: ${DEMO_PASSWORD}).`);
 
     // 2. Insertar Alimentos variados para María (usuario_id = 1)
     console.log('🥑 Insertando despensa completa de alimentos...');
@@ -68,6 +75,24 @@ async function seed () {
     `;
     await client.query(foodQuery);
     console.log('   22 alimentos de muestra insertados.');
+
+    // 2b. Historial de alimentos consumidos
+    console.log('📜 Insertando historial de consumo...');
+    await client.query(`
+      INSERT INTO alimentos_consumidos
+      (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, color, inicial, motivo, fecha_consumo) VALUES
+      (1, NULL, 'Palta Hass',        'frutas',   2, 'refrigeradora', CURRENT_DATE - INTERVAL '2 day', 'Preparada en ensalada',         '#A71619', 'P', 'consumido', CURRENT_TIMESTAMP - INTERVAL '2 hours'),
+      (1, NULL, 'Tomate Italiano',   'frutas',   3, 'refrigeradora', CURRENT_DATE - INTERVAL '1 day', 'Usado en salsa casera',         '#F5A524', 'T', 'consumido', CURRENT_TIMESTAMP - INTERVAL '1 day'),
+      (1, NULL, 'Yogur natural',     'lacteos',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '1 day', 'Desayuno con fruta',            '#6B48A3', 'Y', 'consumido', CURRENT_TIMESTAMP - INTERVAL '2 day'),
+      (1, NULL, 'Plátano de seda',   'frutas',   2, 'despensa',      CURRENT_DATE,                    'Panqueques de avena',           '#D3B38D', 'P', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '3 day'),
+      (1, NULL, 'Manzana Royal Gala', 'frutas',  2, 'despensa',      CURRENT_DATE + INTERVAL '3 day', 'Snack de la tarde',             '#A71619', 'M', 'consumido', CURRENT_TIMESTAMP - INTERVAL '4 day'),
+      (1, NULL, 'Queso fresco',      'lacteos',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '1 day', 'Tortilla de verduras',          '#55665B', 'Q', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '5 day'),
+      (1, NULL, 'Lechuga Americana', 'frutas',   1, 'refrigeradora', CURRENT_DATE,                    'Ensalada del almuerzo',         '#2F9E5B', 'L', 'consumido', CURRENT_TIMESTAMP - INTERVAL '6 day'),
+      (1, NULL, 'Avena en hojuelas', 'cereales', 1, 'despensa',      CURRENT_DATE + INTERVAL '60 day', 'Panqueques y batidos',          '#55665B', 'A', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '8 day'),
+      (1, NULL, 'Jugo de naranja',   'bebidas',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '2 day', 'Bebida del desayuno',           '#F5A524', 'J', 'consumido', CURRENT_TIMESTAMP - INTERVAL '9 day'),
+      (1, NULL, 'Espinaca fresca',   'frutas',   1, 'refrigeradora', CURRENT_DATE,                    'Se marchitó antes de usarla',   '#1E7A46', 'E', 'eliminado', CURRENT_TIMESTAMP - INTERVAL '10 day');
+    `);
+    console.log('   10 registros de consumo insertados.');
 
     // 3. Insertar Recetas completas
     console.log('📖 Insertando recetario completo con ingredientes y pasos...');
@@ -290,10 +315,10 @@ async function seed () {
     // 5. Insertar Historial de Recetas Cocinadas (para dar vida a las estadísticas)
     console.log('🍳 Insertando historial de recetas cocinadas...');
     await client.query(`
-      INSERT INTO recetas_cocinadas (usuario_id, receta_id, fecha_cocinado) VALUES
-      (1, 1, CURRENT_TIMESTAMP - INTERVAL '5 day'),
-      (1, 2, CURRENT_TIMESTAMP - INTERVAL '3 day'),
-      (1, 6, CURRENT_TIMESTAMP - INTERVAL '1 day');
+      INSERT INTO recetas_cocinadas (usuario_id, receta_id, receta_nombre, fecha_cocinado) VALUES
+      (1, 1, 'Ensalada de palta y tomate', CURRENT_TIMESTAMP - INTERVAL '5 day'),
+      (1, 2, 'Tortilla de verduras con queso', CURRENT_TIMESTAMP - INTERVAL '3 day'),
+      (1, 6, 'Arroz salteado con verduras', CURRENT_TIMESTAMP - INTERVAL '1 day');
     `);
     console.log('   3 recetas registradas en el historial de cocinados.');
 
@@ -309,6 +334,7 @@ async function seed () {
     const recipesCount = (await client.query('SELECT COUNT(*) FROM recetas')).rows[0].count;
     const favsCount = (await client.query('SELECT COUNT(*) FROM favoritos')).rows[0].count;
     const cookedCount = (await client.query('SELECT COUNT(*) FROM recetas_cocinadas')).rows[0].count;
+    const consumedCount = (await client.query('SELECT COUNT(*) FROM alimentos_consumidos')).rows[0].count;
 
     console.log(`📊 Resumen de datos en Neon:`);
     console.log(`   - Usuarios:           ${usersCount}`);
@@ -316,6 +342,8 @@ async function seed () {
     console.log(`   - Recetas:            ${recipesCount}`);
     console.log(`   - Favoritos:          ${favsCount}`);
     console.log(`   - Recetas cocinadas:  ${cookedCount}`);
+    console.log(`   - Consumos:           ${consumedCount}`);
+    console.log(`   - Acceso demo:        maria@correo.com / ${DEMO_PASSWORD}`);
 
     process.exit(0);
 

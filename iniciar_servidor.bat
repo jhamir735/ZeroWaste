@@ -14,6 +14,9 @@ echo  - Mis alimentos:   http://localhost:3000/03-mis-alimentos/index.html
 echo  - Registrar:       http://localhost:3000/04-registrar-alimento/index.html
 echo  - API Backend:     http://localhost:3000/api/
 echo.
+echo  ⚠️  Este modo requiere PostgreSQL/Neon disponible.
+echo  Si no tienes base de datos, ejecuta iniciar_demo.bat
+echo.
 echo ================================================================
 echo  Presiona Ctrl+C para detener el servidor cuando termines.
 echo ================================================================

@@ -7,6 +7,7 @@
 const fs = require('fs');
 const path = require('path');
 const db = require('./config/db');
+const { runMigration } = require('./migrate_auth');
 
 async function init () {
   console.log('🔄 Conectando a Neon PostgreSQL...');
@@ -23,8 +24,12 @@ async function init () {
     console.log('📄 Ejecutando script SQL en Neon (creando tablas e insertando datos)...');
     await db.query(sql);
 
+    console.log('🔐 Configurando usuarios y contraseñas...');
+    await runMigration({ silent: true });
+
     console.log('🎉 ¡Base de datos en Neon inicializada con éxito!');
-    console.log('   Tablas creadas: usuarios, alimentos, recetas, favoritos, recetas_cocinadas.');
+    console.log('   Tablas creadas: usuarios, alimentos, alimentos_consumidos, recetas, favoritos, recetas_cocinadas.');
+    console.log('   Acceso demo: maria@correo.com / zerowaste123');
 
     // Verificar conteos
     const u = await db.query('SELECT COUNT(*) FROM usuarios');

@@ -5,6 +5,9 @@
   "scripts": {
     "start": "node backend/server.js",
     "server": "node backend/server.js",
+    "demo": "node backend/demo-server.js",
+    "demo:reset": "node backend/demo-server.js --reset",
+    "migrate": "node backend/migrate_auth.js",
     "seed": "node backend/seed_neon.js"
   },
   "keywords": [

@@ -7,6 +7,7 @@
 -- 1. Eliminar tablas previas si existen
 DROP TABLE IF EXISTS recetas_cocinadas CASCADE;
 DROP TABLE IF EXISTS favoritos CASCADE;
+DROP TABLE IF EXISTS alimentos_consumidos CASCADE;
 DROP TABLE IF EXISTS alimentos CASCADE;
 DROP TABLE IF EXISTS recetas CASCADE;
 DROP TABLE IF EXISTS usuarios CASCADE;
@@ -16,7 +17,10 @@ CREATE TABLE usuarios (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(150) UNIQUE,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    username VARCHAR(50) UNIQUE,
+    password_hash TEXT,
+    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 3. Tabla: alimentos
@@ -38,7 +42,28 @@ CREATE TABLE alimentos (
 CREATE INDEX idx_alimentos_usuario ON alimentos(usuario_id);
 CREATE INDEX idx_alimentos_vencimiento ON alimentos(fecha_vencimiento);
 
--- 4. Tabla: recetas
+-- 4. Tabla: historial de alimentos consumidos / eliminados
+CREATE TABLE alimentos_consumidos (
+    id SERIAL PRIMARY KEY,
+    usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    alimento_id INT,
+    nombre VARCHAR(120) NOT NULL,
+    categoria VARCHAR(50) DEFAULT 'otros',
+    cantidad INT NOT NULL DEFAULT 1,
+    ubicacion VARCHAR(50) DEFAULT 'despensa',
+    fecha_vencimiento DATE,
+    notas TEXT,
+    imagen TEXT,
+    color VARCHAR(20) DEFAULT '#1E7A46',
+    inicial VARCHAR(5) DEFAULT 'A',
+    motivo VARCHAR(20) NOT NULL DEFAULT 'consumido', -- consumido, eliminado, cocinado
+    fecha_consumo TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_consumidos_usuario ON alimentos_consumidos(usuario_id);
+CREATE INDEX idx_consumidos_fecha ON alimentos_consumidos(fecha_consumo DESC);
+
+-- 5. Tabla: recetas
 CREATE TABLE recetas (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
@@ -55,7 +80,7 @@ CREATE TABLE recetas (
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Tabla: favoritos
+-- 6. Tabla: favoritos
 CREATE TABLE favoritos (
     id SERIAL PRIMARY KEY,
     usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
@@ -66,17 +91,19 @@ CREATE TABLE favoritos (
 
 CREATE INDEX idx_favoritos_usuario ON favoritos(usuario_id);
 
--- 6. Tabla: recetas_cocinadas
+-- 7. Tabla: recetas_cocinadas
 CREATE TABLE recetas_cocinadas (
     id SERIAL PRIMARY KEY,
     usuario_id INT REFERENCES usuarios(id) ON DELETE CASCADE,
     receta_id INT REFERENCES recetas(id) ON DELETE CASCADE,
+    receta_nombre VARCHAR(200),
+    receta_id_externo VARCHAR(100),
     fecha_cocinado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_cocinadas_usuario ON recetas_cocinadas(usuario_id);
 
--- 7. Tabla: recetas_cache (Caché temporal de 24h para APIs externas e IA)
+-- 8. Tabla: recetas_cache (Caché temporal de 24h para APIs externas e IA)
 CREATE TABLE IF NOT EXISTS recetas_cache (
     id SERIAL PRIMARY KEY,
     receta_id_externo VARCHAR(100) NOT NULL,
@@ -106,10 +133,12 @@ CREATE INDEX IF NOT EXISTS idx_recetas_cache_hash ON recetas_cache(hash_busqueda
 -- ==============================================================
 
 -- Usuarios
-INSERT INTO usuarios (nombre, email) VALUES
-('María Pérez', 'maria@correo.com'),
-('Carlos Mendoza', 'carlos.m@correo.com'),
-('Ana Lucía Torres', 'ana.torres@correo.com');
+-- La contraseña se asigna al ejecutar `node migrate_auth.js`:
+--   maria / carlos / ana  →  zerowaste123
+INSERT INTO usuarios (nombre, email, username) VALUES
+('María Pérez', 'maria@correo.com', 'maria'),
+('Carlos Mendoza', 'carlos.m@correo.com', 'carlos'),
+('Ana Lucía Torres', 'ana.torres@correo.com', 'ana');
 
 -- Alimentos para María (usuario_id = 1)
 INSERT INTO alimentos (usuario_id, nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, color, inicial) VALUES
@@ -345,6 +374,20 @@ INSERT INTO recetas (id, nombre, tiempo, porciones, dificultad, tags, color, ini
 
 SELECT setval('recetas_id_seq', (SELECT MAX(id) FROM recetas));
 
+-- Historial de alimentos consumidos (datos demo para gráficos e historial)
+INSERT INTO alimentos_consumidos
+(usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, color, inicial, motivo, fecha_consumo) VALUES
+(1, NULL, 'Palta Hass',       'frutas',   2, 'refrigeradora', CURRENT_DATE - INTERVAL '2 day', 'Preparada en ensalada',        '#A71619', 'P', 'consumido', CURRENT_TIMESTAMP - INTERVAL '2 hours'),
+(1, NULL, 'Tomate Italiano',  'frutas',   3, 'refrigeradora', CURRENT_DATE - INTERVAL '1 day', 'Usado en salsa casera',        '#F5A524', 'T', 'consumido', CURRENT_TIMESTAMP - INTERVAL '1 day'),
+(1, NULL, 'Yogur natural',    'lacteos',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '1 day', 'Desayuno con fruta',           '#6B48A3', 'Y', 'consumido', CURRENT_TIMESTAMP - INTERVAL '2 day'),
+(1, NULL, 'Plátano de seda',  'frutas',   2, 'despensa',      CURRENT_DATE,                   'Panqueques de avena',          '#D3B38D', 'P', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '3 day'),
+(1, NULL, 'Manzana Royal Gala','frutas',  2, 'despensa',      CURRENT_DATE + INTERVAL '3 day', 'Snack de la tarde',            '#A71619', 'M', 'consumido', CURRENT_TIMESTAMP - INTERVAL '4 day'),
+(1, NULL, 'Queso fresco',     'lacteos',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '1 day', 'Tortilla de verduras',         '#55665B', 'Q', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '5 day'),
+(1, NULL, 'Lechuga Americana','frutas',   1, 'refrigeradora', CURRENT_DATE,                   'Ensalada del almuerzo',        '#2F9E5B', 'L', 'consumido', CURRENT_TIMESTAMP - INTERVAL '6 day'),
+(1, NULL, 'Avena en hojuelas','cereales', 1, 'despensa',      CURRENT_DATE + INTERVAL '60 day','Panqueques y batidos',          '#55665B', 'A', 'cocinado',  CURRENT_TIMESTAMP - INTERVAL '8 day'),
+(1, NULL, 'Jugo de naranja',  'bebidas',  1, 'refrigeradora', CURRENT_DATE + INTERVAL '2 day', 'Bebida del desayuno',          '#F5A524', 'J', 'consumido', CURRENT_TIMESTAMP - INTERVAL '9 day'),
+(1, NULL, 'Espinaca fresca',  'frutas',   1, 'refrigeradora', CURRENT_DATE,                   'Se marchitó antes de usarla',  '#1E7A46', 'E', 'eliminado', CURRENT_TIMESTAMP - INTERVAL '10 day');
+
 -- Favoritos
 INSERT INTO favoritos (usuario_id, receta_id) VALUES
 (1, 1),
@@ -352,7 +395,7 @@ INSERT INTO favoritos (usuario_id, receta_id) VALUES
 (1, 7);
 
 -- Historial de cocinados
-INSERT INTO recetas_cocinadas (usuario_id, receta_id, fecha_cocinado) VALUES
-(1, 1, CURRENT_TIMESTAMP - INTERVAL '5 day'),
-(1, 2, CURRENT_TIMESTAMP - INTERVAL '3 day'),
-(1, 6, CURRENT_TIMESTAMP - INTERVAL '1 day');
+INSERT INTO recetas_cocinadas (usuario_id, receta_id, receta_nombre, fecha_cocinado) VALUES
+(1, 1, 'Ensalada de palta y tomate', CURRENT_TIMESTAMP - INTERVAL '5 day'),
+(1, 2, 'Tortilla de verduras con queso', CURRENT_TIMESTAMP - INTERVAL '3 day'),
+(1, 6, 'Arroz salteado con verduras', CURRENT_TIMESTAMP - INTERVAL '1 day');

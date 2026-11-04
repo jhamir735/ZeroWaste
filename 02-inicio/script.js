@@ -8,12 +8,10 @@
 
 (function () {
 
-  const API_BASE = '/api';
-
   /* ============ USUARIO Y SIDEBAR ============ */
   function refreshUser () {
     const user = ZWStore.getUser();
-    const firstName = (user.name || 'María').split(' ')[0];
+    const firstName = (user.name || 'Usuario').split(' ')[0];
     const hour = new Date().getHours();
     const saludo = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches';
 
@@ -31,9 +29,9 @@
 
     // Lanzar peticiones en paralelo para mayor velocidad
     const [statsRes, alimentosRes, recomRes] = await Promise.allSettled([
-      fetch(`${API_BASE}/estadisticas?usuario_id=1`).then(r => r.json()),
-      fetch(`${API_BASE}/alimentos?usuario_id=1`).then(r => r.json()),
-      fetch(`${API_BASE}/recetas/recomendaciones?usuario_id=1&filtro=todas`).then(r => r.json())
+      ZWStore.apiFetch('/estadisticas').then(r => r.json()),
+      ZWStore.apiFetch('/alimentos').then(r => r.json()),
+      ZWStore.apiFetch('/recetas/recomendaciones?filtro=todas').then(r => r.json())
     ]);
 
     // ---- Estadísticas de Neon ----
@@ -398,8 +396,8 @@
   if (editForm) {
     editForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      const n  = editName?.value.trim()  || 'María Pérez';
-      const em = editEmail?.value.trim() || 'maria@correo.com';
+      const n  = editName?.value.trim()  || 'Usuario';
+      const em = editEmail?.value.trim() || '';
       ZWStore.saveUser({ name: n, email: em });
       refreshUser();
       closeProfileModal();

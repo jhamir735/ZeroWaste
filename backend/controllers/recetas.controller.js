@@ -26,7 +26,7 @@ function generateSearchHash (alimentos) {
  */
 exports.getRecomendaciones = async (req, res) => {
   try {
-    const usuarioId = req.query.usuario_id || 1;
+    const usuarioId = req.usuario.id;
     const filtro = req.query.filtro || 'listas'; // 'listas' por defecto: 100% en despensa sin comprar
     const busqueda = req.query.q ? req.query.q.toLowerCase().trim() : '';
 
@@ -199,7 +199,7 @@ exports.getRecomendaciones = async (req, res) => {
  */
 exports.generarRecetaIa = async (req, res) => {
   try {
-    const usuarioId = req.body.usuario_id || 1;
+    const usuarioId = req.usuario.id;
 
     // Consultar alimentos disponibles y no vencidos
     const { rows: alimentos } = await db.query(`
@@ -251,7 +251,7 @@ exports.getRecetas = async (req, res) => {
 exports.getRecetaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuarioId = req.query.usuario_id || 1;
+    const usuarioId = req.usuario.id;
 
     let recetaEncontrada = null;
 
@@ -327,7 +327,7 @@ exports.getRecetaById = async (req, res) => {
 exports.toggleFavorito = async (req, res) => {
   try {
     const { id } = req.params;
-    const usuarioId = req.body.usuario_id || 1;
+    const usuarioId = req.usuario.id;
 
     const numId = parseInt(id, 10);
     const esNumerico = !isNaN(numId) && numId > 0 && numId < 2147483647;
@@ -371,14 +371,18 @@ exports.cocinarReceta = async (req, res) => {
   const client = await db.pool.connect();
   try {
     const { id } = req.params;
-    const usuarioId = req.body.usuario_id || 1;
+    const usuarioId = req.usuario.id;
     const descontarAlimentos = req.body.descontar_alimentos !== false;
 
     await client.query('BEGIN');
 
-    // Obtener los alimentos vigentes del usuario
+    // Obtener los alimentos vigentes del usuario (con datos para el historial)
     const { rows: alimentos } = await client.query(`
-      SELECT id, nombre, cantidad FROM alimentos WHERE usuario_id = $1
+      SELECT id, nombre, categoria, cantidad, ubicacion,
+             fecha_vencimiento, notas, imagen, color, inicial
+        FROM alimentos
+       WHERE usuario_id = $1
+       ORDER BY (fecha_vencimiento - CURRENT_DATE) ASC
     `, [usuarioId]);
 
     let recetaEncontrada = null;
@@ -414,21 +418,47 @@ exports.cocinarReceta = async (req, res) => {
       [usuarioId, refId, nombreReceta, idExterno]
     );
 
-    // Descontar alimentos usados de Neon
+    // Descontar alimentos usados de Neon y registrar el consumo en el historial
     const descontados = [];
     if (descontarAlimentos && recetaEncontrada && Array.isArray(recetaEncontrada.ingredientes)) {
       for (const ing of recetaEncontrada.ingredientes) {
-        const ingName = typeof ing === 'string' ? ing : (ing.nombre || '');
-        const match = alimentos.find(a => RecommendationEngine.matchesIngredient(ingName, a.nombre));
+        const ingName = typeof ing === 'string' ? ing : (ing.nombre || ing.name || '');
+        const match = alimentos.find(a =>
+          a.cantidad > 0 && RecommendationEngine.matchesIngredient(ingName, a.nombre)
+        );
 
         if (match) {
+          const unidadesUsadas = 1;
+
           if (match.cantidad > 1) {
             await client.query('UPDATE alimentos SET cantidad = cantidad - 1 WHERE id = $1', [match.id]);
+            match.cantidad -= 1;
             descontados.push(`${match.nombre} (-1 unidad)`);
           } else {
             await client.query('DELETE FROM alimentos WHERE id = $1', [match.id]);
+            match.cantidad = 0;
             descontados.push(`${match.nombre} (agotado)`);
           }
+
+          await client.query(
+            `INSERT INTO alimentos_consumidos
+              (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
+               fecha_vencimiento, notas, imagen, color, inicial, motivo, fecha_consumo)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'cocinado', CURRENT_TIMESTAMP)`,
+            [
+              usuarioId,
+              match.id,
+              match.nombre,
+              match.categoria,
+              unidadesUsadas,
+              match.ubicacion,
+              match.fecha_vencimiento,
+              (match.notas ? match.notas + ' · ' : '') + 'Usado en receta: ' + nombreReceta,
+              match.imagen,
+              match.color,
+              match.inicial
+            ]
+          );
         }
       }
     }

@@ -11,11 +11,15 @@ require('dotenv').config();
 
 const db = require('./config/db');
 const CacheService = require('./services/cache.service');
+const { runMigration } = require('./migrate_auth');
 
 // Rutas
+const authRoutes      = require('./routes/auth.routes');
 const alimentosRoutes = require('./routes/alimentos.routes');
 const recetasRoutes   = require('./routes/recetas.routes');
 const usuarioRoutes   = require('./routes/usuario.routes');
+const historialRoutes = require('./routes/historial.routes');
+const reportesRoutes  = require('./routes/reportes.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +29,7 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Expose-Headers', 'Content-Disposition, Content-Length');
   res.header('Access-Control-Allow-Private-Network', 'true');
 
   if (req.method === 'OPTIONS') {
@@ -61,8 +66,11 @@ app.get('/api/health', (req, res) => {
 });
 
 // Montar Rutas de la API
+app.use('/api/auth',      authRoutes);
 app.use('/api/alimentos', alimentosRoutes);
 app.use('/api/recetas',   recetasRoutes);
+app.use('/api/historial', historialRoutes);
+app.use('/api/reportes',  reportesRoutes);
 app.use('/api',           usuarioRoutes);
 
 // Servir frontend estático sin caché en desarrollo para evitar scripts desactualizados en navegador
@@ -109,7 +117,17 @@ app.listen(PORT, async () => {
   console.log('====================================================');
 
   // Probar conexión a PostgreSQL
-  await db.testConnection();
+  const connected = await db.testConnection();
+
+  // Migración idempotente: login, contraseñas e historial de consumo
+  if (connected) {
+    try {
+      await runMigration({ silent: true });
+      console.log('🔐 Esquema de autenticación e historial verificado.');
+    } catch (migrationError) {
+      console.warn('⚠️  No se pudo verificar el esquema de autenticación:', migrationError.message);
+    }
+  }
 
   // Limpieza inicial de caché expirada al arrancar
   try {

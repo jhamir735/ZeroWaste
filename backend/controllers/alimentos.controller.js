@@ -1,6 +1,7 @@
 /* =============================================
    ZeroWaste – Alimentos Controller
    Archivo: backend/controllers/alimentos.controller.js
+   Todos los datos están aislados por usuario autenticado.
    ============================================= */
 'use strict';
 
@@ -11,6 +12,8 @@ const AVATAR_COLORS = [
   '#A71619', '#1E7A46', '#F5A524', '#2F9E5B',
   '#55665B', '#6B48A3', '#D3B38D', '#0B6E4F', '#C0392B'
 ];
+
+const MOTIVOS_VALIDOS = ['consumido', 'eliminado', 'cocinado'];
 
 function getAvatarColor (name) {
   if (!name) return AVATAR_COLORS[0];
@@ -26,26 +29,31 @@ function getBadgeInfo (days) {
   return { text: 'En ' + days + ' días', cls: 'badge-safe' };
 }
 
+function normalizarMotivo (value) {
+  const motivo = String(value || '').toLowerCase();
+  return MOTIVOS_VALIDOS.includes(motivo) ? motivo : 'consumido';
+}
+
 // GET /api/alimentos
 exports.getAlimentos = async (req, res) => {
   try {
-    const usuarioId = req.query.usuario_id || 1;
+    const usuarioId = req.usuario.id;
     const categoria = req.query.categoria;
     const busqueda  = req.query.q;
 
     let query = `
-      SELECT 
-        id, 
-        usuario_id, 
-        nombre, 
-        categoria, 
-        cantidad, 
-        ubicacion, 
+      SELECT
+        id,
+        usuario_id,
+        nombre,
+        categoria,
+        cantidad,
+        ubicacion,
         TO_CHAR(fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
         (fecha_vencimiento - CURRENT_DATE) AS dias_restantes,
-        notas, 
-        imagen, 
-        color, 
+        notas,
+        imagen,
+        color,
         inicial,
         fecha_creacion
       FROM alimentos
@@ -90,18 +98,18 @@ exports.getAlimentos = async (req, res) => {
 // GET /api/alimentos/alertas
 exports.getAlertas = async (req, res) => {
   try {
-    const usuarioId = req.query.usuario_id || 1;
+    const usuarioId = req.usuario.id;
 
     const query = `
-      SELECT 
-        id, 
-        nombre, 
-        categoria, 
-        cantidad, 
-        ubicacion, 
+      SELECT
+        id,
+        nombre,
+        categoria,
+        cantidad,
+        ubicacion,
         TO_CHAR(fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
         (fecha_vencimiento - CURRENT_DATE) AS dias_restantes,
-        color, 
+        color,
         inicial,
         imagen
       FROM alimentos
@@ -135,14 +143,14 @@ exports.getAlimentoById = async (req, res) => {
   try {
     const { id } = req.params;
     const { rows } = await db.query(`
-      SELECT 
-        id, nombre, categoria, cantidad, ubicacion, 
+      SELECT
+        id, nombre, categoria, cantidad, ubicacion,
         TO_CHAR(fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
         (fecha_vencimiento - CURRENT_DATE) AS dias_restantes,
-        notas, imagen, color, inicial 
-      FROM alimentos 
-      WHERE id = $1
-    `, [id]);
+        notas, imagen, color, inicial
+      FROM alimentos
+      WHERE id = $1 AND usuario_id = $2
+    `, [id, req.usuario.id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Alimento no encontrado' });
@@ -161,7 +169,6 @@ exports.getAlimentoById = async (req, res) => {
 exports.createAlimento = async (req, res) => {
   try {
     const {
-      usuario_id = 1,
       nombre,
       categoria,
       cantidad = 1,
@@ -169,7 +176,7 @@ exports.createAlimento = async (req, res) => {
       fecha_vencimiento,
       notas = '',
       imagen = null
-    } = req.body;
+    } = req.body || {};
 
     if (!nombre || !categoria || !fecha_vencimiento) {
       return res.status(400).json({
@@ -178,26 +185,26 @@ exports.createAlimento = async (req, res) => {
       });
     }
 
-    const inicial = nombre.trim().charAt(0).toUpperCase();
-    const color = getAvatarColor(nombre.trim());
+    const inicial = String(nombre).trim().charAt(0).toUpperCase();
+    const color = getAvatarColor(String(nombre).trim());
 
     const query = `
       INSERT INTO alimentos (usuario_id, nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, imagen, color, inicial)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING 
-        id, usuario_id, nombre, categoria, cantidad, ubicacion, 
+      RETURNING
+        id, usuario_id, nombre, categoria, cantidad, ubicacion,
         TO_CHAR(fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
         (fecha_vencimiento - CURRENT_DATE) AS dias_restantes,
         notas, imagen, color, inicial, fecha_creacion
     `;
     const values = [
-      usuario_id,
-      nombre.trim(),
-      categoria.trim().toLowerCase(),
+      req.usuario.id,
+      String(nombre).trim(),
+      String(categoria).trim().toLowerCase(),
       Math.max(1, parseInt(cantidad, 10) || 1),
-      ubicacion.trim().toLowerCase(),
+      String(ubicacion).trim().toLowerCase(),
       fecha_vencimiento,
-      notas ? notas.trim() : '',
+      notas ? String(notas).trim() : '',
       imagen,
       color,
       inicial
@@ -220,29 +227,98 @@ exports.createAlimento = async (req, res) => {
 
 // PUT /api/alimentos/:id
 exports.updateAlimento = async (req, res) => {
+  const client = await db.pool.connect();
   try {
     const { id } = req.params;
-    const { nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, imagen } = req.body;
+    const { nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, imagen } = req.body || {};
+    const nuevaCantidad = cantidad !== undefined ? parseInt(cantidad, 10) : null;
+
+    if (nuevaCantidad !== null && (isNaN(nuevaCantidad) || nuevaCantidad <= 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'La cantidad debe ser mayor a cero. Usa el historial para registrar el consumo.'
+      });
+    }
+
+    const usuarioId = req.usuario.id;
+    const nombreLimpio = nombre ? String(nombre).trim() : null;
+
+    await client.query('BEGIN');
+
+    const { rows: actuales } = await client.query(
+      'SELECT * FROM alimentos WHERE id = $1 AND usuario_id = $2 FOR UPDATE',
+      [id, usuarioId]
+    );
+
+    if (actuales.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ success: false, message: 'Alimento no encontrado para actualizar' });
+    }
+
+    const actual = actuales[0];
+    let cantidadConsumida = 0;
+
+    // Si la cantidad disminuye, registramos las unidades consumidas en el historial.
+    if (nuevaCantidad !== null && nuevaCantidad < actual.cantidad) {
+      cantidadConsumida = actual.cantidad - nuevaCantidad;
+      const motivo = normalizarMotivo(req.body.motivo || req.query.motivo);
+
+      await client.query(
+        `INSERT INTO alimentos_consumidos
+          (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
+           fecha_vencimiento, notas, imagen, color, inicial, motivo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+        [
+          usuarioId,
+          actual.id,
+          actual.nombre,
+          actual.categoria,
+          cantidadConsumida,
+          actual.ubicacion,
+          actual.fecha_vencimiento,
+          actual.notas,
+          actual.imagen,
+          actual.color,
+          actual.inicial,
+          motivo
+        ]
+      );
+    }
 
     const query = `
       UPDATE alimentos
-      SET 
+      SET
         nombre = COALESCE($1, nombre),
         categoria = COALESCE($2, categoria),
         cantidad = COALESCE($3, cantidad),
         ubicacion = COALESCE($4, ubicacion),
         fecha_vencimiento = COALESCE($5, fecha_vencimiento),
         notas = COALESCE($6, notas),
-        imagen = COALESCE($7, imagen)
-      WHERE id = $8
-      RETURNING 
-        id, usuario_id, nombre, categoria, cantidad, ubicacion, 
+        imagen = COALESCE($7, imagen),
+        color = COALESCE($8, color),
+        inicial = COALESCE($9, inicial)
+      WHERE id = $10 AND usuario_id = $11
+      RETURNING
+        id, usuario_id, nombre, categoria, cantidad, ubicacion,
         TO_CHAR(fecha_vencimiento, 'YYYY-MM-DD') AS fecha_vencimiento,
         (fecha_vencimiento - CURRENT_DATE) AS dias_restantes,
         notas, imagen, color, inicial
     `;
-    const values = [nombre, categoria, cantidad, ubicacion, fecha_vencimiento, notas, imagen, id];
-    const { rows } = await db.query(query, values);
+    const values = [
+      nombreLimpio,
+      categoria,
+      nuevaCantidad,
+      ubicacion,
+      fecha_vencimiento,
+      notas,
+      imagen,
+      nombreLimpio ? getAvatarColor(nombreLimpio) : null,
+      nombreLimpio ? nombreLimpio.charAt(0).toUpperCase() : null,
+      id,
+      usuarioId
+    ];
+    const { rows } = await client.query(query, values);
+    await client.query('COMMIT');
 
     if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'Alimento no encontrado para actualizar' });
@@ -253,53 +329,95 @@ exports.updateAlimento = async (req, res) => {
     res.json({
       success: true,
       message: 'Alimento actualizado',
-      data: { ...actualizado, dias, badge: getBadgeInfo(dias) }
+      data: { ...actualizado, dias, badge: getBadgeInfo(dias) },
+      cantidad_consumida: cantidadConsumida
     });
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch {}
     console.error('Error en updateAlimento:', err);
     res.status(500).json({ success: false, message: 'Error al actualizar alimento', error: err.message });
+  } finally {
+    client.release();
   }
 };
 
 // DELETE /api/alimentos/:id
 exports.deleteAlimento = async (req, res) => {
+  const client = await db.pool.connect();
   try {
     const { id } = req.params;
-    const nombre = req.query.nombre || req.body?.nombre;
-    const usuarioId = req.query.usuario_id || 1;
+    const nombre = req.query.nombre || (req.body && req.body.nombre);
+    const motivo = normalizarMotivo(req.query.motivo || (req.body && req.body.motivo));
+    const usuarioId = req.usuario.id;
 
-    let rows = [];
-    
-    // 1. Intentar eliminar por ID numérico si es un ID válido en PostgreSQL
     const numericId = parseInt(id, 10);
-    if (!isNaN(numericId) && numericId < 2147483647) {
-      const result = await db.query('DELETE FROM alimentos WHERE id = $1 RETURNING id, nombre', [numericId]);
-      rows = result.rows;
-    }
+    const idValido = !isNaN(numericId) && numericId > 0 && numericId < 2147483647;
 
-    // 2. Si no se encontró por ID (p. ej. si era un ID temporal de timestamp o mock local), buscar por nombre
-    if (rows.length === 0 && nombre && nombre.trim()) {
-      const resultName = await db.query(
-        'DELETE FROM alimentos WHERE usuario_id = $1 AND LOWER(nombre) = LOWER($2) RETURNING id, nombre',
-        [usuarioId, nombre.trim()]
+    await client.query('BEGIN');
+
+    let item = null;
+
+    if (idValido) {
+      const { rows } = await client.query(
+        'SELECT * FROM alimentos WHERE id = $1 AND usuario_id = $2 FOR UPDATE',
+        [numericId, usuarioId]
       );
-      rows = resultName.rows;
+      if (rows.length > 0) item = rows[0];
     }
 
-    if (rows.length === 0) {
+    if (!item && nombre && String(nombre).trim()) {
+      const { rows } = await client.query(
+        `SELECT * FROM alimentos
+          WHERE usuario_id = $1 AND LOWER(nombre) = LOWER($2)
+          ORDER BY id ASC LIMIT 1
+          FOR UPDATE`,
+        [usuarioId, String(nombre).trim()]
+      );
+      if (rows.length > 0) item = rows[0];
+    }
+
+    if (!item) {
+      await client.query('ROLLBACK');
       console.warn(`⚠️ Alimento no encontrado para eliminar: ID=${id}, Nombre=${nombre}`);
       return res.status(404).json({ success: false, message: 'Alimento no encontrado para eliminar en la base de datos' });
     }
 
-    console.log(`🗑 Alimento eliminado en Neon: "${rows[0].nombre}" (ID: ${rows[0].id})`);
+    await client.query(
+      `INSERT INTO alimentos_consumidos
+        (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
+         fecha_vencimiento, notas, imagen, color, inicial, motivo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      [
+        usuarioId,
+        item.id,
+        item.nombre,
+        item.categoria,
+        item.cantidad,
+        item.ubicacion,
+        item.fecha_vencimiento,
+        item.notas,
+        item.imagen,
+        item.color,
+        item.inicial,
+        motivo
+      ]
+    );
+
+    await client.query('DELETE FROM alimentos WHERE id = $1 AND usuario_id = $2', [item.id, usuarioId]);
+    await client.query('COMMIT');
+
+    console.log(`🗑 Alimento "${item.nombre}" (ID: ${item.id}) registrado como ${motivo} y eliminado del inventario.`);
+
     res.json({
       success: true,
-      message: `Alimento "${rows[0].nombre}" eliminado correctamente de la base de datos`,
-      data: { id: rows[0].id, nombre: rows[0].nombre }
+      message: `Alimento "${item.nombre}" ${motivo === 'eliminado' ? 'eliminado' : 'consumido'} correctamente`,
+      data: { id: item.id, nombre: item.nombre, motivo }
     });
   } catch (err) {
+    try { await client.query('ROLLBACK'); } catch {}
     console.error('Error en deleteAlimento:', err);
     res.status(500).json({ success: false, message: 'Error al eliminar alimento', error: err.message });
+  } finally {
+    client.release();
   }
 };
-

@@ -147,10 +147,10 @@
     }
 
     try {
-      const res = await ZWStore.removeFood(id, name);
+      const res = await ZWStore.removeFood(id, name, 'consumido');
       renderAlerts();
       if (res && res.deletedInBackend) {
-        showToast('✨ ' + name + ' marcado como consumido y actualizado en Neon.');
+        showToast('✨ ' + name + ' marcado como consumido y guardado en tu historial.');
       } else {
         showToast('✨ ' + name + ' marcado como consumido.');
       }
@@ -201,8 +201,8 @@
   if (editForm) {
     editForm.addEventListener('submit', function (e) {
       e.preventDefault();
-      const n = editName?.value.trim() || 'María Pérez';
-      const em = editEmail?.value.trim() || 'maria@correo.com';
+      const n = editName?.value.trim() || 'Usuario';
+      const em = editEmail?.value.trim() || '';
       ZWStore.saveUser({ name: n, email: em });
       refreshUser();
       closeProfileModal();

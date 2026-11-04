@@ -6,8 +6,11 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "demo": "node demo-server.js",
+    "demo:reset": "node demo-server.js --reset",
     "init-db": "node init_db.js",
     "init-cache": "node init_cache_table.js",
+    "migrate": "node migrate_auth.js",
     "seed": "node seed_neon.js"
   },
   "keywords": ["zerowaste", "express", "postgresql", "api-rest"],
