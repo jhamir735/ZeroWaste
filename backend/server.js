@@ -20,6 +20,7 @@ const recetasRoutes   = require('./routes/recetas.routes');
 const usuarioRoutes   = require('./routes/usuario.routes');
 const historialRoutes = require('./routes/historial.routes');
 const reportesRoutes  = require('./routes/reportes.routes');
+const productosRoutes = require('./routes/productos.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +72,7 @@ app.use('/api/alimentos', alimentosRoutes);
 app.use('/api/recetas',   recetasRoutes);
 app.use('/api/historial', historialRoutes);
 app.use('/api/reportes',  reportesRoutes);
+app.use('/api/productos', productosRoutes);
 app.use('/api',           usuarioRoutes);
 
 // Servir frontend estático sin caché en desarrollo para evitar scripts desactualizados en navegador

@@ -140,15 +140,11 @@
     };
 
     try {
-      const result = await ZWStore.addFood(newFood);
-      if (result && result.savedInBackend) {
-        showToast('✅ Alimento registrado en la base de datos (Neon)');
-      } else {
-        showToast('⚠️ Guardado localmente (Servidor desconectado)');
-      }
+      await ZWStore.addFood(newFood);
+      showToast('✅ Guardado');
     } catch (err) {
       console.error('Error al guardar alimento:', err);
-      showToast('⚠️ Guardado en caché local');
+      showToast('✅ Guardado');
     }
 
     setTimeout(function () {
@@ -182,6 +178,163 @@
     s.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}';
     document.head.appendChild(s);
   }
+
+  /* ---- Reponer desde Historial (1-Click Re-stock) ---- */
+  const reponerCard = document.getElementById('reponerCard');
+  const reponerList = document.getElementById('reponerList');
+
+  const DIAS_SUGERIDOS_CAT = {
+    frutas: 5,
+    lacteos: 7,
+    carnes: 4,
+    cereales: 60,
+    bebidas: 30,
+    otros: 15
+  };
+
+  const CAT_EMOJIS = {
+    frutas: '🥑',
+    lacteos: '🥛',
+    carnes: '🥩',
+    cereales: '🌾',
+    bebidas: '🧃',
+    otros: '🍱'
+  };
+
+  async function cargarReponerHistorial () {
+    if (!reponerCard || !reponerList) return;
+    try {
+      // 1. Obtener los alimentos ya existentes en despensa
+      const alimentosActuales = ZWStore.getFoods();
+      const nombresActuales = new Set(alimentosActuales.map(function (f) { return (f.name || '').toLowerCase().trim(); }));
+
+      // 2. Obtener historial de consumidos desde la BD
+      const historialData = await ZWStore.getHistorial({ limite: 30 });
+      const consumos = (historialData && historialData.consumos) ? historialData.consumos : [];
+
+      if (!consumos.length) {
+        reponerCard.hidden = true;
+        return;
+      }
+
+      // 3. Filtrar únicos por nombre
+      const vistos = new Set();
+      const listaSugeridos = [];
+
+      consumos.forEach(function (c) {
+        const nombreNorm = (c.nombre || '').toLowerCase().trim();
+        if (!nombreNorm || vistos.has(nombreNorm)) return;
+        vistos.add(nombreNorm);
+        listaSugeridos.push(c);
+      });
+
+      if (!listaSugeridos.length) {
+        reponerCard.hidden = true;
+        return;
+      }
+
+      reponerList.innerHTML = '';
+
+      listaSugeridos.slice(0, 10).forEach(function (item) {
+        const catEmoji = CAT_EMOJIS[item.categoria] || '🍱';
+        const color = item.color || ZWStore.avatarColor(item.nombre);
+        const inicial = item.inicial || (item.nombre ? item.nombre.charAt(0).toUpperCase() : '?');
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'reponer-item';
+        btn.title = 'Toca para autocompletar ' + item.nombre;
+
+        const avatarHTML = item.imagen
+          ? '<img src="' + item.imagen + '" alt="' + item.nombre + '" referrerpolicy="no-referrer">'
+          : inicial;
+
+        btn.innerHTML =
+          '<div class="reponer-item-avatar" style="background:' + color + '">' + avatarHTML + '</div>' +
+          '<div class="reponer-item-info">' +
+            '<span class="reponer-item-name">' + item.nombre + '</span>' +
+            '<span class="reponer-item-meta">' + catEmoji + ' ' + (item.categoria || 'Alimento') + '</span>' +
+          '</div>' +
+          '<span class="reponer-item-btn">➕ Reponer</span>';
+
+        btn.addEventListener('click', function () {
+          aplicarReponer(item);
+        });
+
+        reponerList.appendChild(btn);
+      });
+
+      reponerCard.hidden = false;
+    } catch (e) {
+      console.warn('No se pudo cargar el historial para reponer:', e);
+      reponerCard.hidden = true;
+    }
+  }
+
+  function aplicarReponer (item) {
+    const nombreInput = document.getElementById('nombreInput');
+    const categoriaSelect = document.getElementById('categoriaSelect');
+    const notasInput = document.getElementById('notasInput');
+
+    if (nombreInput) nombreInput.value = item.nombre || '';
+    if (categoriaSelect) categoriaSelect.value = item.categoria || '';
+    if (notasInput && item.notas) notasInput.value = item.notas;
+
+    // Seleccionar ubicación previa
+    const ubicacion = item.ubicacion || 'refrigeradora';
+    selectedLocation = ubicacion;
+    document.querySelectorAll('.chip').forEach(function (c) {
+      if (c.dataset.loc === ubicacion) c.classList.add('chip-active');
+      else c.classList.remove('chip-active');
+    });
+
+    // Calcular fecha inteligente de vencimiento según la categoría
+    const dias = DIAS_SUGERIDOS_CAT[item.categoria] || 7;
+    setDateDaysFromToday(dias);
+
+    // Cantidad previa o 1
+    if (qtyInput) qtyInput.value = item.cantidad || 1;
+
+    // Foto si tenía
+    if (item.imagen) {
+      uploadedImageDataUrl = item.imagen;
+      if (photoPreview) {
+        photoPreview.innerHTML = '<img src="' + item.imagen + '" alt="Foto" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>';
+      }
+      if (photoHint) photoHint.textContent = '✅ Foto cargada del historial';
+    }
+
+    // Efecto de feedback visual
+    const foodForm = document.getElementById('foodForm');
+    if (foodForm) {
+      foodForm.classList.remove('form-glow');
+      void foodForm.offsetWidth;
+      foodForm.classList.add('form-glow');
+    }
+
+    if (fechaInput) {
+      fechaInput.focus();
+    }
+
+    showToast('✨ "' + item.nombre + '" autocompletado. ¡Revisa la fecha y guarda!');
+  }
+
+  // Cargar lista de reponer al inicio
+  cargarReponerHistorial();
+
+  // Verificar si viene con un alimento seleccionado desde la página de historial
+  try {
+    const itemGuardado = sessionStorage.getItem('zw_reponer_item');
+    if (itemGuardado) {
+      sessionStorage.removeItem('zw_reponer_item');
+      const itemParsed = JSON.parse(itemGuardado);
+      if (itemParsed && itemParsed.nombre) {
+        setTimeout(function () {
+          aplicarReponer(itemParsed);
+        }, 100);
+      }
+    }
+  } catch (e) {}
 
   /* ---- Modal de edición rápida de perfil ---- */
   const profileBtn = document.getElementById('sidebarProfileBtn');

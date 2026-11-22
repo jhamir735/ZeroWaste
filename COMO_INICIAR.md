@@ -105,9 +105,53 @@ tarea/
 ├── 06-recetas/           → Recetas con ingredientes disponibles
 ├── 07-detalle-receta/    → Detalle y preparación de receta
 ├── 08-estadisticas/      → Estadísticas, historial y reportes PDF/Excel
+├── 09-escanear/          → Escáner de códigos de barras (cámara del celular)
 ├── backend/              → Servidor Node.js + PostgreSQL Neon
 ├── shared/               → Estilos y store compartidos
 ├── iniciar_servidor.bat  → Atajo para arrancar el backend
 └── COMO_INICIAR.md       → Este archivo 📄
 ```
 
+
+---
+
+## 📖 Tutorial integrado
+
+En todas las pantallas hay un botón **Tutorial** abajo a la izquierda. Al pulsarlo se abre una guía paso a paso para principiantes, con capturas de cada pantalla y marcas numeradas.
+
+- Se abre directamente en el paso de la pantalla donde estás.
+- Se navega con **Anterior / Siguiente**, con las flechas del teclado o eligiendo un paso a la izquierda. Se cierra con **✕** o **Esc**.
+- Archivos: `shared/tutorial.js` (contenido y lógica), `shared/tutorial.css` (estilos) y `shared/tutorial/` (capturas y posición de las marcas).
+- Para editar los textos, abre `shared/tutorial.js` y modifica el arreglo `PASOS`.
+- Para agregarlo a una página nueva, añade `<link rel="stylesheet" href="../shared/tutorial.css"/>` en el `<head>` y `<script src="../shared/tutorial.js"></script>` antes de `</body>`.
+
+
+---
+
+## 📷 Escanear productos con el celular
+
+Pantalla `09-escanear`. Se llega con el botón **Escanear** en *Inicio* y *Mis alimentos*, o con el banner de *Registrar alimento*.
+
+**Cómo funciona**
+1. Pulsa **Activar cámara** (en el celular usa la cámara trasera) y apunta al código de barras.
+2. Al reconocerlo suena un pitido y el producto aparece en la lista con nombre, categoría, ubicación y una fecha de vencimiento sugerida.
+3. Edita lo que haga falta (cantidad, fecha, atajos +3 días / +1 semana / +1 mes) y pulsa **Guardar todo**. Se agregan a *Mis alimentos*.
+- Si escaneas el mismo código otra vez, sube la cantidad.
+- Si el producto no existe en las bases de datos, queda en amarillo para que escribas el nombre y la categoría.
+- La lista se conserva si recargas la página (hasta cerrar la pestaña).
+
+**Alternativas si la cámara no se activa**: botón **Tomar foto del código** o escribir el número a mano (8, 12, 13 o 14 dígitos).
+
+**⚠️ Requisito de la cámara en vivo: HTTPS o localhost.** Los navegadores solo permiten la cámara en `https://` o en `localhost`. Si abres el servidor desde el celular con `http://192.168.x.x:3000` la cámara no se activará; opciones:
+- Publicar la app con HTTPS (Render, Railway, Vercel, etc.).
+- Un túnel temporal con HTTPS, por ejemplo `npx localtunnel --port 3000` o `ngrok http 3000`.
+- Usar **Tomar foto del código**, que funciona sin HTTPS.
+
+**Probar sin productos reales**: abre `09-escanear/codigos-demo.html` (22 códigos de prueba imprimibles) y escanéalos desde la pantalla de otro dispositivo o impresos.
+
+**Base de productos**
+- Primero se busca en el catálogo demo (`backend/services/productos.demo.data.js`).
+- Si no está, se consulta **Open Food Facts** (gratuito, requiere internet) y se guarda en memoria 24 h.
+- Sin internet, el producto queda como «desconocido» para completarlo a mano.
+- Endpoint: `GET /api/productos/barcode/:codigo` (requiere sesión iniciada).
+- Lectura de códigos: `BarcodeDetector` nativo (Chrome/Edge) o ZXing incluido en `09-escanear/vendor/` (sin depender de CDN).

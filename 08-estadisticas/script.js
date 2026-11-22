@@ -125,7 +125,7 @@
       ? '🏆 ¡Héroe Verde desbloqueado!'
       : '💪 Sigue consumiendo y cocinando para ganar más logros';
     extraEl.textContent =
-      '📡 Neon en tiempo real · ' + statsNeon.total_en_inventario + ' alimentos en despensa · ' +
+      '📡 En tiempo real · ' + statsNeon.total_en_inventario + ' alimentos en despensa · ' +
       statsNeon.total_consumidos + ' consumos registrados · S/ ' +
       Number(statsNeon.dinero_ahorrado_pen || 0).toFixed(2) + ' ahorrados · ' + badge;
   }
@@ -272,7 +272,7 @@
     const extraEl = document.getElementById('statsExtraInfo');
     if (extraEl) {
       extraEl.textContent = statsNeon
-        ? '📡 Neon en tiempo real · ' + data.extra + ' · ' + data.eliminatedTotal + ' alimento(s) eliminado(s)'
+        ? '📡 En tiempo real · ' + data.extra + ' · ' + data.eliminatedTotal + ' alimento(s) eliminado(s)'
         : '📦 ' + data.extra;
     }
 

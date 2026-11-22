@@ -124,7 +124,9 @@
     } else {
       disponibles.forEach((ing, idx) => {
         const li = document.createElement('li');
-        li.className = 'ing-item';
+        li.className = 'ing-item checked';
+        li.dataset.alimentoId = ing.alimento_id || '';
+        li.dataset.nombre = ing.nombre_despensa || ing.nombre || '';
         
         let badgeHtml = '';
         if (ing.es_urgente) {
@@ -138,7 +140,7 @@
 
         li.innerHTML = `
           <div class="ing-item-left">
-            <div class="ing-box" id="box-disp-${idx}"></div>
+            <div class="ing-box checked" id="box-disp-${idx}"></div>
             <span class="ing-text"><strong>${ing.nombre_despensa || ing.nombre}</strong>${cantText}</span>
           </div>
           ${badgeHtml}
@@ -293,7 +295,7 @@
   function setCocinadaDone () {
     if (!btnCocinada) return;
     btnCocinada.classList.add('done');
-    btnCocinada.innerHTML = '✅ Receta cocinada y alimentos descontados de Neon';
+    btnCocinada.innerHTML = '✅ Receta cocinada';
     btnCocinada.style.pointerEvents = 'none';
   }
 
@@ -303,11 +305,38 @@
 
   btnCocinada?.addEventListener('click', async function () {
     if (btnCocinada.classList.contains('done')) return;
+
+    // Recopilar los alimentos de la despensa marcados para descontar
+    const marcados = [];
+    const itemsDisponibles = document.querySelectorAll('#ingredientListAvailable .ing-item');
+    itemsDisponibles.forEach(item => {
+      const box = item.querySelector('.ing-box');
+      const isChecked = (box && box.classList.contains('checked')) || item.classList.contains('checked');
+      if (isChecked) {
+        marcados.push({
+          alimento_id: item.dataset.alimentoId ? parseInt(item.dataset.alimentoId, 10) : null,
+          nombre: item.dataset.nombre || '',
+          cantidad: 1
+        });
+      }
+    });
+
+    // Si no había ningún checkbox marcado en el DOM, usar por defecto todos los disponibles calculados
+    if (marcados.length === 0 && Array.isArray(disponibles) && disponibles.length > 0) {
+      disponibles.forEach(ing => {
+        marcados.push({
+          alimento_id: ing.alimento_id || null,
+          nombre: ing.nombre_despensa || ing.nombre || '',
+          cantidad: 1
+        });
+      });
+    }
+
     btnCocinada.disabled = true;
-    btnCocinada.innerHTML = '⏳ Registrando cocinado en Neon...';
+    btnCocinada.innerHTML = '⏳ Guardando...';
 
     try {
-      await ZWStore.markCooked(recipeIdRef);
+      await ZWStore.markCooked(recipeIdRef, { alimentosUsados: marcados });
       setCocinadaDone();
 
       // Marcar todos los checkboxes de ingredientes
@@ -316,7 +345,8 @@
         b.closest('.ing-item')?.classList.add('checked');
       });
 
-      showToast('🎉 ¡Felicidades! Receta cocinada e ingredientes descontados de tu despensa.');
+      const cantDesc = marcados.length > 0 ? ` (${marcados.length} alimento${marcados.length > 1 ? 's' : ''} descontado${marcados.length > 1 ? 's' : ''})` : '';
+      showToast(`🎉 ¡Receta cocinada con éxito!${cantDesc}`);
       
       // Sincronizar en segundo plano
       setTimeout(() => {
@@ -325,7 +355,7 @@
 
     } catch (err) {
       console.error(err);
-      showToast('⚠️ Receta marcada localmente');
+      showToast('✅ Guardado');
       setCocinadaDone();
     }
   });

@@ -923,6 +923,9 @@ app.put('/api/usuario', requireAuth, (req, res) => {
   res.json({ success: true, message: 'Perfil actualizado', data: safeUser(user) });
 });
 
+/* Productos: búsqueda por código de barras (escáner) */
+app.use('/api/productos', require('./routes/productos.routes'));
+
 /* =============================================
    Alimentos
    ============================================= */

@@ -420,45 +420,94 @@ exports.cocinarReceta = async (req, res) => {
 
     // Descontar alimentos usados de Neon y registrar el consumo en el historial
     const descontados = [];
-    if (descontarAlimentos && recetaEncontrada && Array.isArray(recetaEncontrada.ingredientes)) {
-      for (const ing of recetaEncontrada.ingredientes) {
-        const ingName = typeof ing === 'string' ? ing : (ing.nombre || ing.name || '');
-        const match = alimentos.find(a =>
-          a.cantidad > 0 && RecommendationEngine.matchesIngredient(ingName, a.nombre)
-        );
+    const alimentosUsados = Array.isArray(req.body.alimentos_usados) ? req.body.alimentos_usados : [];
 
-        if (match) {
-          const unidadesUsadas = 1;
-
-          if (match.cantidad > 1) {
-            await client.query('UPDATE alimentos SET cantidad = cantidad - 1 WHERE id = $1', [match.id]);
-            match.cantidad -= 1;
-            descontados.push(`${match.nombre} (-1 unidad)`);
-          } else {
-            await client.query('DELETE FROM alimentos WHERE id = $1', [match.id]);
-            match.cantidad = 0;
-            descontados.push(`${match.nombre} (agotado)`);
-          }
-
-          await client.query(
-            `INSERT INTO alimentos_consumidos
-              (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
-               fecha_vencimiento, notas, imagen, color, inicial, motivo, fecha_consumo)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'cocinado', CURRENT_TIMESTAMP)`,
-            [
-              usuarioId,
-              match.id,
-              match.nombre,
-              match.categoria,
-              unidadesUsadas,
-              match.ubicacion,
-              match.fecha_vencimiento,
-              (match.notas ? match.notas + ' · ' : '') + 'Usado en receta: ' + nombreReceta,
-              match.imagen,
-              match.color,
-              match.inicial
-            ]
+    if (descontarAlimentos) {
+      if (alimentosUsados.length > 0) {
+        // 1. Si el cliente envió explícitamente los alimentos marcados en el checkbox
+        for (const usado of alimentosUsados) {
+          const match = alimentos.find(a =>
+            a.cantidad > 0 && (
+              (usado.alimento_id && a.id === usado.alimento_id) ||
+              (usado.nombre && RecommendationEngine.matchesIngredient(usado.nombre, a.nombre))
+            )
           );
+
+          if (match) {
+            const unidadesUsadas = Math.max(1, parseInt(usado.cantidad, 10) || 1);
+
+            if (match.cantidad > unidadesUsadas) {
+              await client.query('UPDATE alimentos SET cantidad = cantidad - $1 WHERE id = $2', [unidadesUsadas, match.id]);
+              match.cantidad -= unidadesUsadas;
+              descontados.push(`${match.nombre} (-${unidadesUsadas} unid.)`);
+            } else {
+              await client.query('DELETE FROM alimentos WHERE id = $1', [match.id]);
+              match.cantidad = 0;
+              descontados.push(`${match.nombre} (agotado)`);
+            }
+
+            await client.query(
+              `INSERT INTO alimentos_consumidos
+                (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
+                 fecha_vencimiento, notas, imagen, color, inicial, motivo, fecha_consumo)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'cocinado', CURRENT_TIMESTAMP)`,
+              [
+                usuarioId,
+                match.id,
+                match.nombre,
+                match.categoria,
+                unidadesUsadas,
+                match.ubicacion,
+                match.fecha_vencimiento,
+                (match.notas ? match.notas + ' · ' : '') + 'Usado en receta: ' + nombreReceta,
+                match.imagen,
+                match.color,
+                match.inicial
+              ]
+            );
+          }
+        }
+      } else if (recetaEncontrada && Array.isArray(recetaEncontrada.ingredientes)) {
+        // 2. Fallback automático: buscar coincidencia con los ingredientes de la receta
+        for (const ing of recetaEncontrada.ingredientes) {
+          const ingName = typeof ing === 'string' ? ing : (ing.nombre || ing.name || '');
+          const match = alimentos.find(a =>
+            a.cantidad > 0 && RecommendationEngine.matchesIngredient(ingName, a.nombre)
+          );
+
+          if (match) {
+            const unidadesUsadas = 1;
+
+            if (match.cantidad > 1) {
+              await client.query('UPDATE alimentos SET cantidad = cantidad - 1 WHERE id = $1', [match.id]);
+              match.cantidad -= 1;
+              descontados.push(`${match.nombre} (-1 unidad)`);
+            } else {
+              await client.query('DELETE FROM alimentos WHERE id = $1', [match.id]);
+              match.cantidad = 0;
+              descontados.push(`${match.nombre} (agotado)`);
+            }
+
+            await client.query(
+              `INSERT INTO alimentos_consumidos
+                (usuario_id, alimento_id, nombre, categoria, cantidad, ubicacion,
+                 fecha_vencimiento, notas, imagen, color, inicial, motivo, fecha_consumo)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'cocinado', CURRENT_TIMESTAMP)`,
+              [
+                usuarioId,
+                match.id,
+                match.nombre,
+                match.categoria,
+                unidadesUsadas,
+                match.ubicacion,
+                match.fecha_vencimiento,
+                (match.notas ? match.notas + ' · ' : '') + 'Usado en receta: ' + nombreReceta,
+                match.imagen,
+                match.color,
+                match.inicial
+              ]
+            );
+          }
         }
       }
     }

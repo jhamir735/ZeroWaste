@@ -39,7 +39,7 @@
       list.innerHTML = `
         <div style="grid-column: 1 / -1; text-align:center; padding:50px 20px;">
           <div style="font-size:36px; margin-bottom:12px; animation:spin 1s infinite linear;">🍲</div>
-          <p style="font-weight:700; color:var(--text-main); font-size:15px;">Consultando tu despensa en Neon...</p>
+          <p style="font-weight:700; color:var(--text-main); font-size:15px;">Consultando tu despensa...</p>
           <p style="color:var(--text-sec); font-size:13px;">Buscando recetas que puedes preparar hoy sin comprar más ingredientes</p>
         </div>
       `;
@@ -186,7 +186,7 @@
     const oldText = btnChefIA.innerHTML;
     btnChefIA.innerHTML = '<span>⏳</span> Chef IA cocinando receta...';
 
-    showToast('👨‍🍳 El Chef IA está analizando tus alimentos en Neon...');
+    showToast('👨‍🍳 El Chef IA está analizando tus alimentos...');
 
     try {
       const nuevaReceta = await ZWStore.generateAiRecipe();

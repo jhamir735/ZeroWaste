@@ -401,23 +401,31 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
 
 /* ---- Notificación toast ---- */
 .toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--text-main);
-  color: #fff;
-  padding: 13px 24px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  transition: transform 0.35s ease, opacity 0.35s ease;
-  opacity: 0;
-  z-index: 999;
-  white-space: nowrap;
+  position: fixed !important;
+  bottom: 28px !important;
+  left: 50% !important;
+  transform: translateX(-50%) translateY(80px) !important;
+  background: var(--text-main, #1F2A24) !important;
+  color: #fff !important;
+  padding: 13px 24px !important;
+  border-radius: 12px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 25px rgba(0,0,0,0.25) !important;
+  transition: transform 0.35s ease, opacity 0.35s ease !important;
+  opacity: 0 !important;
+  z-index: 99999 !important;
+  max-width: min(92vw, 520px) !important;
+  width: max-content !important;
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.45 !important;
+  box-sizing: border-box !important;
+  display: block !important;
+  border: none !important;
 }
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast.show { transform: translateX(-50%) translateY(0) !important; opacity: 1 !important; }
 
 /* Navegación móvil (oculta en escritorio) */
 .mobile-nav {
@@ -681,3 +689,24 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
 
 
 
+
+/* =============================================
+   Escáner de código de barras – accesos
+   (botón «Escanear» en Inicio/Alimentos y banner en Registrar)
+   ============================================= */
+.sc-entry { display: inline-flex; align-items: center; gap: 6px; }
+.scan-banner {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 18px; padding: 14px 18px; text-decoration: none;
+  background: linear-gradient(135deg, #E6F4EA 0%, #F4F9EC 100%); border: 1.5px solid #CFE6D6; border-radius: 16px;
+  color: var(--text-main); font-size: 13px; line-height: 1.45; transition: var(--transition-smooth);
+}
+.scan-banner:hover { border-color: var(--primary); transform: translateY(-1px); box-shadow: var(--shadow); }
+.scan-banner-ico { font-size: 26px; flex: none; }
+.scan-banner b { color: var(--primary); font-size: 14px; }
+.scan-banner-go { margin-left: auto; flex: none; background: var(--primary); color: #fff; font-weight: 600; font-size: 12.5px; padding: 8px 14px; border-radius: 999px; }
+@media (max-width: 520px) {
+  .sc-entry span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sc-entry { padding: 9px 11px; }
+  .scan-banner { padding: 12px 14px; gap: 10px; }
+  .scan-banner-go { display: none; }
+}

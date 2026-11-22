@@ -702,7 +702,7 @@ const ZWStore = (function () {
       if (res.ok) {
         const json = await res.json();
         deletedInBackend = true;
-        backendMessage = json.message || 'Eliminado de Neon';
+        backendMessage = json.message || 'Eliminado';
         console.log(`✅ Alimento "${finalName}" (ID: ${numericId}) eliminado de Neon`);
       } else {
         const errJson = await res.json().catch(function () { return {}; });
@@ -913,20 +913,56 @@ const ZWStore = (function () {
     return getCooked().map(String).includes(strId);
   }
 
-  async function markCooked (id) {
+  async function markCooked (id, opciones) {
     const strId = String(id);
+    const opts = opciones || {};
     const cooked = getCooked().map(String);
     if (!cooked.includes(strId)) {
       cooked.push(strId);
       saveData(KEYS.COOKED, cooked);
     }
 
+    const alimentosUsados = Array.isArray(opts.alimentosUsados) ? opts.alimentosUsados : [];
+
+    // Descontar inmediatamente en la despensa local
+    if (alimentosUsados.length > 0) {
+      const localFoods = loadData(KEYS.FOODS, []);
+      if (Array.isArray(localFoods)) {
+        let huboCambios = false;
+        alimentosUsados.forEach(function (usado) {
+          const uNom = (usado.nombre || '').toLowerCase().trim();
+          const idx = localFoods.findIndex(function (f) {
+            return (usado.alimento_id && f.id === usado.alimento_id) ||
+                   (uNom && f.name && f.name.toLowerCase().trim() === uNom) ||
+                   (uNom && f.name && (f.name.toLowerCase().includes(uNom) || uNom.includes(f.name.toLowerCase())));
+          });
+          if (idx !== -1) {
+            huboCambios = true;
+            if (localFoods[idx].qty > 1) {
+              localFoods[idx].qty -= 1;
+            } else {
+              localFoods.splice(idx, 1);
+            }
+          }
+        });
+        if (huboCambios) {
+          saveData(KEYS.FOODS, localFoods);
+          syncUI();
+        }
+      }
+    }
+
     // Enviar al backend (realiza la transacción en PostgreSQL descontando ingredientes)
     try {
       await apiFetch(`/recetas/${encodeURIComponent(strId)}/cocinar`, {
         method: 'POST',
-        body: JSON.stringify({ descontar_alimentos: true })
+        body: JSON.stringify({
+          descontar_alimentos: true,
+          alimentos_usados: alimentosUsados
+        })
       });
+      // Sincronizar inmediatamente desde Neon para asegurar consistencia
+      await syncFromBackend();
     } catch (e) {
       console.warn('Registro de cocinado offline:', e.message);
     }
