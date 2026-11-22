@@ -456,13 +456,148 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
   }
 
   .page-header {
-    padding: 13px 16px;
-    position: sticky;
-    top: 0;
-    gap: 10px;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "left logout"
+      "actions actions" !important;
+    padding: 12px 16px 10px !important;
+    column-gap: 10px !important;
+    row-gap: 0 !important;
+    align-items: center !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(31, 42, 36, 0.08) !important;
+    box-shadow: 0 2px 10px rgba(31, 42, 36, 0.04) !important;
   }
-  .ph-title { font-size: 19px; }
-  .ph-sub { font-size: 11px; }
+
+  .ph-left {
+    grid-area: left !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+  }
+
+  .ph-left > div {
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .ph-title {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    color: var(--text-main) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin: 0 !important;
+  }
+
+  .ph-sub {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    color: var(--text-sec) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin: 2px 0 0 0 !important;
+  }
+
+  .zw-logout-header {
+    grid-area: logout !important;
+    width: 34px !important;
+    height: 34px !important;
+    justify-self: end !important;
+    margin-left: 0 !important;
+    background: var(--bg) !important;
+    border: 1px solid rgba(31, 42, 36, 0.08) !important;
+    border-radius: 9px !important;
+  }
+
+  .ph-actions {
+    grid-area: actions !important;
+    width: 100% !important;
+    margin: 8px 0 0 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 2px 1px 4px !important;
+  }
+
+  .ph-actions::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .ph-actions:empty,
+  .ph-actions.ph-actions-empty {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .ph-actions .btn-primary-sm,
+  .ph-actions .btn-outline-sm,
+  .ph-actions .export-btn,
+  .ph-actions .sc-entry {
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    border-radius: 999px !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    height: 32px !important;
+    box-sizing: border-box !important;
+  }
+
+  .ph-actions .btn-primary-sm svg,
+  .ph-actions .btn-outline-sm svg,
+  .ph-actions .export-btn svg,
+  .ph-actions .sc-entry svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .export-pills {
+    display: flex !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .export-pills .export-btn {
+    flex: none !important;
+  }
+
+  .btn-back-mobile,
+  .back-btn {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 9px !important;
+    flex-shrink: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .btn-back-mobile svg,
+  .back-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
 
   .page-content {
     padding: 14px 14px 86px;
@@ -491,36 +626,26 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
 
 @media (max-width: 480px) {
   .page-header {
-    padding: 10px 12px;
-    gap: 8px;
-  }
-  .ph-left {
-    gap: 8px;
-    min-width: 0;
+    padding: 10px 12px 8px !important;
+    column-gap: 8px !important;
   }
   .ph-title {
-    font-size: 17px;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 16.5px !important;
   }
   .ph-sub {
-    font-size: 10.5px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 10.5px !important;
   }
   .ph-actions {
-    gap: 5px;
-    flex-shrink: 0;
+    margin-top: 6px !important;
+    gap: 6px !important;
   }
   .ph-actions .btn-primary-sm,
-  .ph-actions .btn-outline-sm {
-    padding: 6px 10px;
-    font-size: 11.5px;
-    border-radius: 8px;
-    gap: 4px;
+  .ph-actions .btn-outline-sm,
+  .ph-actions .export-btn,
+  .ph-actions .sc-entry {
+    padding: 5px 11px !important;
+    font-size: 11.5px !important;
+    height: 30px !important;
   }
   .page-content {
     padding: 12px 10px 86px;
@@ -529,14 +654,15 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
     padding: 13px 11px;
     border-radius: 12px;
   }
-  .btn-back-mobile {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
+  .btn-back-mobile,
+  .back-btn {
+    width: 32px !important;
+    height: 32px !important;
   }
-  .btn-back-mobile svg {
-    width: 17px;
-    height: 17px;
+  .btn-back-mobile svg,
+  .back-btn svg {
+    width: 16px !important;
+    height: 16px !important;
   }
 }
 
@@ -741,13 +867,9 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
 }
 
 @media (max-width: 768px) {
-  .export-pills .export-btn { flex: 1; justify-content: center; }
-  .zw-logout-header { width: 31px; height: 31px; }
+  .export-pills { display: flex; gap: 6px; flex-shrink: 0; }
+  .export-pills .export-btn { flex: none; }
 }
-
-
-
-
 
 /* =============================================
    Escáner de código de barras – accesos
@@ -764,8 +886,6 @@ body, .btn-primary-sm, .btn-outline-sm, .form-input, .btn-primary, .btn-secondar
 .scan-banner b { color: var(--primary); font-size: 14px; }
 .scan-banner-go { margin-left: auto; flex: none; background: var(--primary); color: #fff; font-weight: 600; font-size: 12.5px; padding: 8px 14px; border-radius: 999px; }
 @media (max-width: 520px) {
-  .sc-entry span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  .sc-entry { padding: 9px 11px; }
   .scan-banner { padding: 12px 14px; gap: 10px; }
   .scan-banner-go { display: none; }
 }

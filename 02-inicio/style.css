@@ -2,6 +2,11 @@
    ZeroWaste - Inicio | style.css
    ============================================= */
 
+/* En la pantalla de inicio no se requiere botón de retroceso */
+.btn-back-mobile {
+  display: none !important;
+}
+
 /* ---- Banner de alerta ---- */
 .alert-banner {
   background: var(--urgent-bg);

@@ -804,12 +804,12 @@
 
 @media (max-width: 768px) {
   .stats-header-actions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
   }
-  .export-pills { justify-content: stretch; }
-  .export-pills .export-btn { flex: 1; justify-content: center; }
+  .export-pills { display: flex !important; gap: 6px !important; }
+  .export-pills .export-btn { flex: none !important; }
   .period-pills { width: 100%; }
   .period-pills .pill { flex: 1; }
 

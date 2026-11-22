@@ -1087,8 +1087,8 @@ const ZWStore = (function () {
       footer.appendChild(btn);
     });
 
-    function addHeaderLogout (container) {
-      if (!container || container.querySelector('.zw-logout-header')) return;
+    function addHeaderLogout (header) {
+      if (!header || header.querySelector('.zw-logout-header')) return;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'zw-logout-header';
@@ -1096,12 +1096,18 @@ const ZWStore = (function () {
       btn.setAttribute('aria-label', 'Cerrar sesión');
       btn.innerHTML = logoutIcon;
       btn.addEventListener('click', logout);
-      container.appendChild(btn);
+      header.appendChild(btn);
     }
 
-    document.querySelectorAll('.page-header .ph-actions').forEach(addHeaderLogout);
-    document.querySelectorAll('.page-header').forEach(function (header) {
-      if (!header.querySelector('.ph-actions')) addHeaderLogout(header);
+    document.querySelectorAll('.page-header').forEach(addHeaderLogout);
+
+    document.querySelectorAll('.page-header .ph-actions').forEach(function (actions) {
+      const visible = Array.from(actions.children).filter(function (c) {
+        return !c.classList.contains('desktop-search') && !c.classList.contains('zw-logout-header');
+      });
+      if (visible.length === 0) {
+        actions.classList.add('ph-actions-empty');
+      }
     });
   }
 
