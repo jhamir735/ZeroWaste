@@ -1,7 +1,9 @@
 {
   "name": "zerowaste-app",
   "version": "1.0.0",
-  "description": "ZeroWaste - Aplicación Web Anti-Desperdicio de Alimentos",
+  "description": "ZeroWaste - Aplicacion Web Anti-Desperdicio de Alimentos",
+  "homepage": "https://zerowaste-2.onrender.com",
+  "author": "Jhamir (jhmralexander@gmail.com)",
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
