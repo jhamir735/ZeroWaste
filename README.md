@@ -11,7 +11,7 @@ https://zerowaste-2.onrender.com
 
 - URL en Produccion (Render): https://zerowaste-2.onrender.com
 - Repositorio en GitHub: https://github.com/jhamir735/ZeroWaste.git
-- Desarrollador / Contacto: Jhamir (jhmralexander@gmail.com)
+
 
 ---
 
