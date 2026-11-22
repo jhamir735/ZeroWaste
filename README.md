@@ -183,9 +183,3 @@ Ingresar a: http://localhost:3000/01-bienvenida/index.html
 3. Acceder al enlace generado por Render:
    https://zerowaste-2.onrender.com
 
----
-
-## Licencia y Creditos
-
-Proyecto desarrollado por Jhamir Alexander (jhmralexander@gmail.com).
-Todos los derechos reservados - ZeroWaste 2026.
