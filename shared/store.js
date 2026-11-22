@@ -8,8 +8,10 @@
 
 const ZWStore = (function () {
 
-  const API_BASE = (typeof window !== 'undefined' && window.location.origin.includes(':3000'))
-    ? '/api'
+  const API_BASE = (typeof window !== 'undefined' && window.location && window.location.protocol.startsWith('http'))
+    ? (window.location.port === '5500' || window.location.port === '5173' || window.location.port === '8080')
+      ? 'http://localhost:3000/api'
+      : '/api'
     : 'http://localhost:3000/api';
 
   const FALLBACK_DISH_SVG = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
