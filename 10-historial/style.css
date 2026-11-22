@@ -322,5 +322,21 @@
 @media (max-width: 600px) {
   .historial-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .historial-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+  .h-name { font-size: 14.5px; }
+  .h-meta-row { font-size: 11.5px; padding: 6px 10px; }
+  .h-actions { gap: 6px; }
+  .btn-reponer-directo { padding: 8px 12px; font-size: 12px; }
+  .btn-reponer-ajustar { padding: 8px 10px; font-size: 12px; }
+
+  .historial-stats-bar {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
   }
 }

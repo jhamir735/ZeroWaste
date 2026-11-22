@@ -211,19 +211,48 @@
 
 /* ---- Móvil ---- */
 @media (max-width: 768px) {
-  .mini-stats-row { grid-template-columns: 1fr; gap: 10px; }
-  .mini-stat-card { padding: 14px 16px; }
-  .msc-val { font-size: 18px; }
+  .mini-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .mini-stat-card {
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+  .msc-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 19px;
+    border-radius: 10px;
+  }
+  .msc-val { font-size: 17px; }
+  .msc-lbl { font-size: 11px; }
 
-  .rc-visual { height: 80px; }
-  .rc-emoji { font-size: 40px; }
+  .alert-banner {
+    padding: 12px 14px;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .ac-text { font-size: 13px; }
 
-  .tip-inner { flex-direction: column; gap: 12px; }
-  .btn-otro-consejo { align-self: flex-start; }
+  .rc-visual { height: 110px; margin-bottom: 10px; }
+  .rc-emoji { font-size: 44px; }
+  .rc-title { font-size: 15px; }
+  .rc-desc { font-size: 12px; }
+
+  .tip-inner { flex-direction: column; gap: 10px; }
+  .tip-text { font-size: 13px; line-height: 1.5; }
+  .btn-otro-consejo { align-self: flex-start; padding: 6px 10px; font-size: 11.5px; }
 }
 
-@media (min-width: 480px) and (max-width: 768px) {
-  .mini-stats-row { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 420px) {
+  .mini-stats-row { gap: 8px; }
+  .mini-stat-card { padding: 10px 11px; gap: 8px; }
+  .msc-icon { width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
+  .msc-val { font-size: 15px; }
+  .msc-lbl { font-size: 10px; }
 }
 
 

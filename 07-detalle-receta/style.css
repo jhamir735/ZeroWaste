@@ -200,7 +200,28 @@
 .btn-primary.done { background: var(--success-bg); color: var(--primary); pointer-events: none; }
 
 @media (max-width: 768px) {
-  .recipe-content { border-radius: 0; box-shadow: none; margin: -14px -14px 0; max-width: none; }
-  .recipe-body, .recipe-action-bar { padding-left: 18px; padding-right: 18px; }
-  .recipe-cover { height: 220px; }
+  .recipe-content {
+    border-radius: 14px;
+    box-shadow: none;
+    margin: 0;
+    max-width: none;
+    padding-bottom: 24px;
+  }
+  .recipe-body {
+    padding: 16px 14px;
+  }
+  .recipe-action-bar {
+    padding: 0 14px;
+  }
+  .recipe-cover { height: 180px; }
+  .recipe-title { font-size: 20px; margin-bottom: 10px; }
+  .recipe-stats { gap: 6px; margin-bottom: 14px; }
+  .r-stat { font-size: 11.5px; padding: 4px 10px; }
+  .recipe-alert { padding: 10px 14px; margin-bottom: 20px; }
+  .r-subtitle { font-size: 15px; margin-bottom: 10px; }
+  .ing-group { padding: 12px; margin-bottom: 14px; }
+  .ing-item { padding: 7px 8px; font-size: 13px; }
+  .step-item { font-size: 13.5px; padding-left: 34px; line-height: 1.5; }
+  .step-item::before { width: 24px; height: 24px; font-size: 12px; }
+  .btn-primary { padding: 13px 16px; font-size: 14px; border-radius: 10px; }
 }

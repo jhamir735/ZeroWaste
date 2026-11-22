@@ -813,8 +813,19 @@
   .period-pills { width: 100%; }
   .period-pills .pill { flex: 1; }
 
+  .motiv-card {
+    padding: 14px 16px;
+    gap: 12px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+  .motiv-emoji { font-size: 28px; }
+  .motiv-badge { display: none; }
+  .motiv-title { font-size: 15px; }
+  .motiv-sub { font-size: 12px; }
+
   .stats-extra-info { text-align: left; }
-  .stats-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid-4 { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
   .chart-svg-wrap { min-height: 210px; }
   .donut-layout {
@@ -839,6 +850,16 @@
 }
 
 @media (max-width: 440px) {
-  .stats-grid-4 { grid-template-columns: 1fr; }
+  .stats-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .s-card {
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+  .sc-icon { font-size: 20px; }
+  .sc-val { font-size: 16px; }
+  .sc-lbl { font-size: 10px; }
   .history-date { padding-left: 0; }
 }

@@ -339,8 +339,59 @@
 @media (max-width: 768px) {
   .fab { display: flex; }
 
+  .inventory-kpi-row {
+    gap: 8px;
+    margin: 10px 0 14px;
+  }
+  .kpi-chip {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  .kpi-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    border-radius: 8px;
+  }
+  .kpi-val { font-size: 16px; }
+  .kpi-lbl { font-size: 10.5px; }
+
+  .filter-tabs {
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+  }
+  .filter-tab {
+    padding: 6px 13px;
+    font-size: 12px;
+  }
+
   .food-list {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
+  .food-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+  .food-avatar {
+    width: 38px;
+    height: 38px;
+    font-size: 15px;
+  }
+  .fc-name { font-size: 14px; }
+  .fc-location { font-size: 11px; }
+  .fc-bottom-row { padding-top: 8px; }
+  .qty-stepper { padding: 2px 5px; gap: 6px; }
+  .btn-qty-step { width: 24px; height: 24px; font-size: 13px; }
+  .qty-stepper-val { font-size: 12px; min-width: 58px; }
+}
+
+@media (max-width: 420px) {
+  .inventory-kpi-row { gap: 5px; }
+  .kpi-chip { padding: 6px 5px; gap: 5px; }
+  .kpi-icon { width: 24px; height: 24px; font-size: 13px; }
+  .kpi-val { font-size: 14px; }
+  .kpi-lbl { font-size: 9px; line-height: 1.1; }
 }
 
