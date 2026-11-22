@@ -2,18 +2,29 @@
   "name": "zerowaste-app",
   "version": "1.0.0",
   "description": "ZeroWaste - Aplicación Web Anti-Desperdicio de Alimentos",
+  "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
     "server": "node backend/server.js",
+    "dev": "node --watch backend/server.js",
     "demo": "node backend/demo-server.js",
     "demo:reset": "node backend/demo-server.js --reset",
+    "init-db": "node backend/init_db.js",
+    "init-cache": "node backend/init_cache_table.js",
     "migrate": "node backend/migrate_auth.js",
     "seed": "node backend/seed_neon.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
   },
   "keywords": [
     "zerowaste",
     "postgresql",
-    "neon"
+    "neon",
+    "express"
   ],
   "author": "",
   "license": "ISC"
