@@ -12,9 +12,19 @@ const { Pool } = require('pg');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 require('dotenv').config(); // Por si se ejecuta directamente desde backend
 
-const connectionString = process.env.DATABASE_URL;
+const rawUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.DATABASE_URI || '';
+const connectionString = rawUrl.trim().replace(/^["']|["']$/g, '');
 
-console.log('📌 Usando cadena de conexión:', connectionString ? connectionString.replace(/:([^:@]+)@/, ':****@') : 'Variables locales (DB_USER/DB_HOST)');
+if (connectionString) {
+  console.log('📌 Usando cadena de conexión a Neon/PostgreSQL Cloud');
+} else {
+  console.warn('⚠️ ALERTA: No se detectó DATABASE_URL en las variables de entorno.');
+  if (process.env.NODE_ENV === 'production' || process.env.RENDER) {
+    console.error('❌ ERROR CRÍTICO EN RENDER: Debes agregar la variable de entorno DATABASE_URL en el panel de Render.');
+  } else {
+    console.log('📌 Usando variables locales por defecto (DB_USER/DB_HOST)');
+  }
+}
 
 const poolConfig = connectionString
   ? {
